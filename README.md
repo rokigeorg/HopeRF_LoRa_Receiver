@@ -32,6 +32,8 @@ TODO: Write usage instructions
 * NSS - GPIO6 (pin #22) 
 * DIO0 - GPIO7 (pin #7) 
 * RST - GPIO0 (pin #11)
+
+
 ## History
 TODO: Write history sure
 ## Credits
