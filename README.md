@@ -1,10 +1,5 @@
-
-
-
-
 <snippet>
-  <content><![CDATA[
-# ${1:Project Name}
+  <content>
 # HopeRF_LoRa_Receiver
 
 TODO: Write a project description
@@ -28,14 +23,15 @@ TODO: Write usage instructions
 5. Submit a pull request :D
 
 ##Wiring HopeRF RFM95 to the Raspberry Pi Model B
-3.3V - 3.3V (header pin #1) 
-GND - GND (pin #6) 
-MISO - MISO (pin #21) 
-MOSI - MOSI (pin #19) 
-SCK - CLK (pin #23) 
-NSS - GPIO6 (pin #22) 
-DIO0 - GPIO7 (pin #7) 
-RST - GPIO0 (pin #11)
+
+* 3.3V - 3.3V (header pin #1) 
+* GND - GND (pin #6) 
+* MISO - MISO (pin #21) 
+* MOSI - MOSI (pin #19) 
+* SCK - CLK (pin #23) 
+* NSS - GPIO6 (pin #22) 
+* DIO0 - GPIO7 (pin #7) 
+* RST - GPIO0 (pin #11)
 ## History
 TODO: Write history
 ## Credits
