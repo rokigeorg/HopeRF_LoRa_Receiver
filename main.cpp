@@ -23,6 +23,10 @@ using namespace std;
 
 int main() {
     Labb_RFM95 labb_rfm95(6,7,0);
+
+    //wait until RF95 is resetted
+    while(!labb_rfm95.resetRFM95());
+
     cout << "Hello, World!" << endl;
     labb_rfm95.printAllRegisters();
     return 0;

@@ -41,6 +41,12 @@ public:
     uint8_t readRegister(uint8_t addr);
 
     /**
+     * This function writes over SPI a register
+     * @param addr -> register address
+     * @param value -> value which the selected register should be set to
+     */
+    void writeRegister(uint8_t addr, uint8_t value);
+    /**
      * This function sets the connected SPI Chipselcet pin to LOW to selctet the chip for SPI communication
      */
     void selectreceiver();
@@ -49,6 +55,26 @@ public:
     * This function sets the connected SPI Chipselcet pin to HIGH to unselctet the chip for SPI communication.
     */
     void unselectreceiver();
+
+    /**
+     * This funcition sets the RF95 into Idle Mode
+     */
+    void setModeIdle();
+
+    /**
+     * This function reads the data stream from the SPI interface and stores it in the given byte Array (Payload) until end of the given array is near
+     * @param payload -> array where the data from the SPI Stream should be written to
+     * @param size -> size of the passed payload array
+     */
+    void spiBurstRead(uint8_t * payload , uint8_t size);
+
+    /**
+     * This function resets the RFM95 Modul via toggling the RST pin
+     * @return -> TRUE when it is done
+     */
+    bool resetRFM95();
+
+    void handleInterrupt();
 
     typedef enum {
         RHModeInitialising = 0, ///< Transport is initialising. Initial default value until init() is called..
