@@ -33,7 +33,7 @@ TODO: Write usage instructions
 * DIO0 - GPIO7 (pin #7) 
 * RST - GPIO0 (pin #11)
 ## History
-TODO: Write history
+TODO: Write history sure
 ## Credits
 TODO: Write credits
 ## License
