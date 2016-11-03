@@ -1,0 +1,8 @@
+# Created by .ignore support plugin (hsz.mobi)
+### Ada template
+# Object file
+*.o
+
+# Ada Library Information
+*.ali
+

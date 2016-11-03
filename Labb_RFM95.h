@@ -1,5 +1,9 @@
 //
 // Created by Georg Rokita on 03.11.16.
+// This Class includes code from Thomas Telkamp thomas@telkamp.eu and the Single Channel LoRaWAN Gateway and also the radio Library RFM95
+// It implies the following dependencies
+// SPI  enabled on the Raspberry Pi
+// WiringPi: a GPIO access library written in C for the BCM2835 used in the Raspberry Pi. sudo apt-get install wiringpi see http://wiringpi.com
 //
 
 #ifndef HOPERF_LORA_RECEIVER_LABB_RFM95_H
@@ -46,6 +50,7 @@ public:
      * @param value -> value which the selected register should be set to
      */
     void writeRegister(uint8_t addr, uint8_t value);
+
     /**
      * This function sets the connected SPI Chipselcet pin to LOW to selctet the chip for SPI communication
      */
@@ -66,7 +71,7 @@ public:
      * @param payload -> array where the data from the SPI Stream should be written to
      * @param size -> size of the passed payload array
      */
-    void spiBurstRead(uint8_t * payload , uint8_t size);
+    void spiBurstRead(uint8_t *payload, uint8_t size);
 
     /**
      * This function resets the RFM95 Modul via toggling the RST pin
@@ -74,7 +79,96 @@ public:
      */
     bool resetRFM95();
 
+    /**
+     * This function sets the RF95 to the given frequency
+     * @param freq -> frequency in this formate please 868100000 for 868.1 MHz
+     * @return -> returns true when its done
+     */
+    bool setFrequency(uint32_t freq);
+
+    /**
+     * This function sets up the Modem registers of the RFM95
+     * For details please look in the data sheet of the RFM95 in the LoRa Register Table for the following registers
+     * REG 1D MODEM_CONFIG1
+     * REG 1E MODEM_CONFIG2
+     * REG 26 MODEM_CONFIG3 -> [7-4 bit: unused][3 bit: 0->static node / 1->mobile node] [2 bit: 0->LNA gain set by register LnaGain / 1->LNA gain set by the internal AGC loop][1-0 bit: reserved]
+     */
+    void setModemRegisters();
+
+
+    /**
+     * This functions is suppose to handle an Interrup. The RFM95 toggles an interrupt pin (dio0) when a LoRa package is received.
+     * This function therefore calls all functions which are nessecary to read the FiFo buffer of the RF95.
+     * In my opinion its pretty imporant understand it.
+     */
     void handleInterrupt();
+
+
+    /**
+     * This function sets the RX operation time-out value expressed as number of symbols: TimeOut = SymbTimeout·Ts
+     * @param timeOutPeriod
+     */
+    void setSymbTimeout(uint8_t timeOutPeriod);
+
+
+    /**
+     * This function sets the maximum payload length; Used in Explicit Header Mode.
+     * if header payload length exceeds value a header CRC error is generated. Allows filtering of packet with a bad size.
+     * Here the header provides information on the payload, namely:   The payload length in bytes. The forward error correction code rateThe presence of an optional 16-bits CRC for the payload.
+     * The header is transmitted with maximum error correction code (4/8). It also has its own CRC to allow the receiver to discard invalid headers.
+     * @param mPayloadLength
+     */
+    void setMaxPayloadLength(uint8_t mPayloadLength);
+
+    /**
+     * This function sets the max payload length.Payload length in bytes.
+     * The register needs to be set in implicit header mode for the expected packet length. (Means: In this mode the header is removed from the packet.)
+     * A 0 value is not permitted
+     * @param payll
+     */
+    void setPayloadLength(uint8_t payll);
+
+    /**
+     * Sets the frequencyHopping Period
+     * Symbol periods between frequency hops. (0 = disabled). 1st hop always happen after the 1st header symbol
+     * @param fhhp
+     */
+    void setFrequencyHoppingPeriod(uint8_t fhhp);
+
+
+    /**
+     * This function set the Gain of the output signal.
+     * LNA gain setting: 000 not used
+     * [Bits 7-5]
+     * value 000 not used
+     * value 001 G1 = maximum gain
+     * 010 G2
+     * 011 G3
+     * 100 G4
+     * 101 G5
+     * 110 G6 = minimum gain
+     * 111 not used
+     * [Bits 4-3] Low Frequency (RFI_LF) LNA current adjustment 00 Default LNA current Other   Reserved
+     * [bits 2] reserved for who knows
+     * [bit 1-0] High Frequency (RFI_HF) LNA current adjustment
+     * value 00 -> Default LNA current
+     * value 11 -> Boost on, 150% LNA current
+     * @param lnaMaxGain
+     */
+    void setLnaGain(uint8_t lnaMaxGain);
+
+    /**
+     * This function is the userfriendly way to init (set all registers) the RFM95 for receiving LoRa packages.
+     * This function is based on the Single Channel LoRaWAN Gateway from Thomas Telkamp thomas@telkamp.eu . Thank you for his work.
+     */
+    void SetupLoRa();
+
+    /**
+     * writes zeros to the char buffer / array
+     * @param arr
+     */
+    void clearCharBuffer(char * arr);
+
 
     typedef enum {
         RHModeInitialising = 0, ///< Transport is initialising. Initial default value until init() is called..
@@ -94,7 +188,7 @@ private:
     /// The current transport operating mode
     volatile RHMode _mode;
     ///    Frequency
-    uint32_t _freq ; // in Mhz! (868.1)
+    uint32_t _freq; // in Mhz! (868.1)
     /// Set spreading factor (SF7 - SF12)
     uint8_t _sf;
 

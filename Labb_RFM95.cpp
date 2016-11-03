@@ -156,5 +156,113 @@ void Labb_RFM95::handleInterrupt() {
         // weakest receiveable signals are reported RSSI at about -66
         _lastRssi = readRegister(RH_RF95_REG_1A_PKT_RSSI_VALUE) - 137;
     }
+}
 
+bool Labb_RFM95::setFrequency(uint32_t freq)
+{
+    uint64_t frf = ((uint64_t)freq << 19) / 32000000;
+    writeRegister(RH_RF95_REG_06_FRF_MSB, (uint8_t)(frf>>16) );
+    writeRegister(RH_RF95_REG_07_FRF_MID, (uint8_t)(frf>> 8) );
+    writeRegister(RH_RF95_REG_08_FRF_LSB, (uint8_t)(frf>> 0) );
+    return true;
+}
+
+void Labb_RFM95::setModemRegisters(){
+    writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, 0x72);
+    writeRegister(RH_RF95_REG_1E_MODEM_CONFIG2, (_sf<<4) | 0x04);
+    writeRegister(RH_RF95_REG_26_MODEM_CONFIG3, 0x04);  ///[7-4 bit: unused][3 bit: 0->static node / 1->mobile node] [2 bit: 0->LNA gain set by register LnaGain / 1->LNA gain set by the internal AGC loop][1-0 bit: reserved]
+}
+
+void Labb_RFM95::setSymbTimeout(uint8_t timeOutPeriod){
+    writeRegister(RH_RF95_REG_1F_SYMB_TIMEOUT_LSB,   timeOutPeriod);
+}
+
+void Labb_RFM95::setMaxPayloadLength(uint8_t mPayloadLength){
+    writeRegister(RH_RF95_REG_23_MAX_PAYLOAD_LENGTH,   mPayloadLength);
+}
+
+void Labb_RFM95::setPayloadLength(uint8_t payll) {
+    writeRegister(RH_RF95_REG_22_PAYLOAD_LENGTH,  payll);
+}
+
+void Labb_RFM95::setFrequencyHoppingPeriod(uint8_t fhhp){
+    writeRegister(RH_RF95_REG_24_HOP_PERIOD,fhhp);
+}
+
+void Labb_RFM95::setLnaGain(uint8_t lnaMaxGain){
+    writeRegister(RH_RF95_REG_0C_LNA, LNA_MAX_GAIN);  // max lna gain
+}
+
+void Labb_RFM95::clearCharBuffer(char * arr){
+    memset(&arr[0], 0, sizeof(arr));
+}
+
+
+void Labb_RFM95::SetupLoRa()
+{
+    //Reset of the RFM95W
+    //resetLoRaModul();
+    digitalWrite(RST, HIGH);
+    delay(100);
+    digitalWrite(RST, LOW);
+    delay(100);
+    printf("SX1276 detected, starting.\n");
+
+    digitalWrite(RST, LOW);
+    delay(100);
+    digitalWrite(RST, HIGH);
+    delay(100);
+
+    uint8_t version = readRegister(REG_VERSION);
+    if (version == 0x12) {
+        // sx1276
+        printf("SX1276 detected, starting.\n");
+        printf("Version: 0x%x\n",version);
+    } else {
+        printf("Unrecognized transceiver.\n");
+        printf("Version: 0x%x\n",version);
+        // exit(1);
+    }
+
+    // Set Continous Sleep Mode
+    writeRegister(RH_RF95_REG_01_OP_MODE, RH_RF95_LONG_RANGE_MODE);
+    printf("Set in LONG_RANGE_MODE. REG_OPMODE value: %x \n", readRegister(REG_OPMODE));
+
+    //set Frequency to 868.1 MHz by default
+    printf("Set frequency to: %d Hz\n", _freq);
+    setFrequency(_freq);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setFrequency");}
+
+    setModemRegisters();
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setModemRegisters");}
+
+    //setTimeout RX operation time-out value expressed as number of symbols:
+    setSymbTimeout(RF95_SYMB_TIMEOUT);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setSymbTimeout");}
+    //set Max Payload length to filter for the right packetes
+    setMaxPayloadLength(RF95_MAX_PAYLOAD_LENGTH);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setMaxPayloadLength");}
+
+    setPayloadLength(PAYLOAD_LENGTH);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setPayloadLength");}
+
+    setFrequencyHoppingPeriod(FREQ_HOP_PERIOD);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setFrequencyHoppingPeriod");}
+
+    writeRegister(REG_FIFO_ADDR_PTR, readRegister(REG_FIFO_RX_BASE_AD));
+
+    // Set Continous Receive Mode
+    writeRegister(RH_RF95_REG_01_OP_MODE, SX1276_MODE_Continuos);
 }
