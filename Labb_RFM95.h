@@ -13,6 +13,18 @@
 #include <cstdint>
 #include "RFM95registers.h"
 
+#define CHANNEL 0
+
+#define RF95_SYMB_TIMEOUT   0x64 //0x08
+#define RF95_MAX_PAYLOAD_LENGTH 0x80
+#define PAYLOAD_LENGTH 0x40
+#define FREQ_HOP_PERIOD 0x00 //0x00 means freq hopping is turned off
+//define LNA_MAX_GAIN //LowNoiseAmplifier Gain if the gateway is not set in automatic gain controll
+
+#define SX1276_MODE_Continuos 0x85
+
+
+
 
 class Labb_RFM95 {
 
@@ -168,6 +180,39 @@ public:
      * @param arr
      */
     void clearCharBuffer(char * arr);
+
+    /**
+     * This function returns the interrupt pin on which the RFM95 instance has been created
+     * @return -> privat _irq_pin
+     */
+    int getIRQpin();
+
+    /**
+     * This function returns the Reset pin on which the RFM95 instance has been created
+     * @return -> _RST_pin
+     */
+    int getRSTpin();
+    /**
+     * This function returns the Chip select pin on which the RFM95 instance has been created
+     * @return -> _cs_pin
+     */
+    int getCSpin();
+
+
+    /**
+     * This function sets the RFM95 registers so that the maximum FIFO data buffer size in transmit or receive mode can be used.
+     * The LoRa Fifo of the RFM95 has a 256 byte RAM data buffer (called FiFo).
+     * Important! If the Fifo is expanded the RFM95 can not Tx or Rx simultaneously automaticly.
+     */
+    void expandRFM95DataBuffToFullSize();
+
+    /**
+     * This function reads the latest received LoRa package from the FiFo (LoRa Data buffer)
+     * @param arr -> it takes an byte array of max 256 byte to write the data to
+     */
+    void rxReceivedLoRaPackage(uint8_t * arr);
+
+
 
 
     typedef enum {

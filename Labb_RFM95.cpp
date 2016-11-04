@@ -9,9 +9,16 @@
 
 #include "Labb_RFM95.h"
 
-#define CHANNEL 0
 #define RF95_FREQ 868100000 //868.1 MHz
 #define RF95_SF 7
+
+
+template <typename T, size_t N>
+inline
+size_t SizeOfArray( const T(&)[ N ] )
+{
+    return N;
+}
 
 Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin) {
     std::cout <<"Build instance of the Labb_RFM95.\n";
@@ -37,9 +44,10 @@ Labb_RFM95::~Labb_RFM95() {
 }
 
 bool Labb_RFM95::resetRFM95(){
-    digitalWrite(_RST_pin, HIGH);
-    delay(100);
+
     digitalWrite(_RST_pin, LOW);
+    delay(100);
+    digitalWrite(_RST_pin, HIGH);
     delay(100);
     return true;
 }
@@ -194,26 +202,21 @@ void Labb_RFM95::setLnaGain(uint8_t lnaMaxGain){
 }
 
 void Labb_RFM95::clearCharBuffer(char * arr){
-    memset(&arr[0], 0, sizeof(arr));
+    int i = 0;
+    while (arr[i]== '\n'){
+        arr[i]=0;
+        i++;
+    }
 }
 
 
 void Labb_RFM95::SetupLoRa()
 {
-    //Reset of the RFM95W
-    //resetLoRaModul();
-    digitalWrite(RST, HIGH);
-    delay(100);
-    digitalWrite(RST, LOW);
-    delay(100);
+    //wait until RF95 is resetted
+    while(!resetRFM95());
     printf("SX1276 detected, starting.\n");
 
-    digitalWrite(RST, LOW);
-    delay(100);
-    digitalWrite(RST, HIGH);
-    delay(100);
-
-    uint8_t version = readRegister(REG_VERSION);
+    uint8_t version = readRegister(RH_RF95_REG_42_VERSION);
     if (version == 0x12) {
         // sx1276
         printf("SX1276 detected, starting.\n");
@@ -261,8 +264,47 @@ void Labb_RFM95::SetupLoRa()
         fprintf(stderr, "Value of errno: %d\n", errno);
         perror("Error printed by perror after setFrequencyHoppingPeriod");}
 
-    writeRegister(REG_FIFO_ADDR_PTR, readRegister(REG_FIFO_RX_BASE_AD));
+    writeRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR, readRegister(RH_RF95_REG_0F_FIFO_RX_BASE_ADDR));
 
     // Set Continous Receive Mode
     writeRegister(RH_RF95_REG_01_OP_MODE, SX1276_MODE_Continuos);
+}
+
+int Labb_RFM95::getIRQpin() {
+    return _irq_pin;
+}
+
+int Labb_RFM95::getRSTpin() {
+    return _RST_pin;
+}
+
+int Labb_RFM95::getCSpin() {
+    return _cs_pin;
+}
+
+void Labb_RFM95::expandRFM95DataBuffToFullSize() {
+    writeRegister(RH_RF95_REG_0E_FIFO_TX_BASE_ADDR,0x00);
+    writeRegister(RH_RF95_REG_0F_FIFO_RX_BASE_ADDR,0x00);
+}
+
+void Labb_RFM95::rxReceivedLoRaPackage(uint8_t *arr) {
+
+    /// The actual location to be read from, or written to, over the SPI interface is defined by the address pointer FifoAddrPtr.
+    /// Before any read or write operation it is hence necessary to initialise this pointer to the corresponding base value.
+    /// Upon reading or writing to the FIFO data buffer (RegFifo) the address pointer will then increment automatically.
+    /// The register FifoRxCurrentAddr indicates the location of the last packet received in the FIFO so that
+    /// the last packet received can be easily read by pointing the FifoAddrPtr to this register.
+
+    uint8_t fiFo_Addr = readRegister(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR);
+    writeRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR, fiFo_Addr);
+
+    // Have received a packet
+    uint8_t receivedCount = readRegister(RH_RF95_REG_13_RX_NB_BYTES);     //read register which tells the Number of received bytes
+    uint8_t receivedbytes = receivedCount;
+
+    for(int i = 0; i < receivedbytes; i++)
+    {
+        arr[i] = readRegister(RH_RF95_REG_00_FIFO);
+    }
+
 }
