@@ -35,7 +35,7 @@ int main() {
     labb_rfm95.printAllRegisters();
 
 
-    ///initsRFM95 with the standart parameters
+    ///initsRFM95 with the standart parameters.
     //labb_rfm95.defaultLoRaSetup();
 
     uint32_t frequncy = 868100000;
