@@ -37,7 +37,7 @@ Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin) {
     _mode = RHModeIdle;
     _freq = 868100000;      /////868.1 MHz
     _sf = 7;                ///SF 6 64 chips/symbol; SF 7 128 chips/symbol (default); SF 8 256 chips/symbol; SF 9 512 chips/symbol; SF 10 1024 chips/symbol; SF 11 2048 chips/symbol; SF 12 4096 chips/symbol
-
+    _bw = 0x07;             /// default Bandwidth 125.0 kHZ
 }
 
 Labb_RFM95::~Labb_RFM95() {
@@ -210,7 +210,7 @@ void Labb_RFM95::clearCharBuffer(char * arr){
 }
 
 
-void Labb_RFM95::SetupLoRa()
+void Labb_RFM95::defaultLoRaSetup()
 {
     //wait until RF95 is resetted
     while(!resetRFM95());
@@ -229,7 +229,7 @@ void Labb_RFM95::SetupLoRa()
 
     // Set Continous Sleep Mode
     writeRegister(RH_RF95_REG_01_OP_MODE, RH_RF95_LONG_RANGE_MODE);
-    printf("Set in LONG_RANGE_MODE. REG_OPMODE value: %x \n", readRegister(REG_OPMODE));
+    printf("Set in LONG_RANGE_MODE. REG_OPMODE value: %x \n", readRegister(RH_RF95_REG_01_OP_MODE));
 
     //set Frequency to 868.1 MHz by default
     printf("Set frequency to: %d Hz\n", _freq);
@@ -243,7 +243,7 @@ void Labb_RFM95::SetupLoRa()
         fprintf(stderr, "Value of errno: %d\n", errno);
         perror("Error printed by perror after setModemRegisters");}
 
-    //setTimeout RX operation time-out value expressed as number of symbols:
+    ///setTimeout RX operation time-out value expressed as number of symbols:
     setSymbTimeout(RF95_SYMB_TIMEOUT);
     if(errno != 0){
         fprintf(stderr, "Value of errno: %d\n", errno);
@@ -308,3 +308,119 @@ void Labb_RFM95::rxReceivedLoRaPackage(uint8_t *arr) {
     }
 
 }
+
+void Labb_RFM95::loraSetup(uint32_t fq, uint8_t sf, uint8_t cr) {
+    _freq = fq;
+    _sf = sf;
+
+    //wait until RF95 is resetted
+    while(!resetRFM95());
+    printf("SX1276 detected, starting.\n");
+
+    uint8_t version = readRegister(RH_RF95_REG_42_VERSION);
+    if (version == 0x12) {
+        // sx1276
+        printf("SX1276 detected, starting.\n");
+        printf("Version: 0x%x\n",version);
+    } else {
+        printf("Unrecognized transceiver.\n");
+        printf("Version: 0x%x\n",version);
+        // exit(1);
+    }
+
+    // Set Continous Sleep Mode
+    writeRegister(RH_RF95_REG_01_OP_MODE, RH_RF95_LONG_RANGE_MODE);
+    printf("Set in LONG_RANGE_MODE. REG_OPMODE value: %x \n", readRegister(RH_RF95_REG_01_OP_MODE));
+
+    ///set up freq on the RFM95
+    setFrequency(_freq);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setFrequency");}
+
+    ///set up spreading factor on the RFM95
+    setSpredingFactor(sf);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setSpredingFactor");}
+
+    /// set coding rate
+    setCodingRate(cr);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setCodingRate");}
+
+    /// set MODEM CONFIG 3 Register
+    setModemConfigReg3();
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setModemConfigReg3");}
+
+    ///setTimeout RX operation time-out value expressed as number of symbols:
+    setSymbTimeout(RF95_SYMB_TIMEOUT);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setSymbTimeout");}
+    ///set Max Payload length to filter for the right packetes
+    setMaxPayloadLength(RF95_MAX_PAYLOAD_LENGTH);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setMaxPayloadLength");}
+
+    setPayloadLength(PAYLOAD_LENGTH);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setPayloadLength");}
+
+    setFrequencyHoppingPeriod(FREQ_HOP_PERIOD);
+    if(errno != 0){
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror after setFrequencyHoppingPeriod");}
+
+    writeRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR, readRegister(RH_RF95_REG_0F_FIFO_RX_BASE_ADDR));
+
+    // Set Continous Receive Mode
+    writeRegister(RH_RF95_REG_01_OP_MODE, SX1276_MODE_Continuos);
+}
+
+
+void Labb_RFM95::setSpredingFactor(uint8_t sf) {
+    _sf = sf;
+    writeRegister(RH_RF95_REG_1E_MODEM_CONFIG2, (_sf<<4) | 0x04);
+}
+
+void Labb_RFM95::setCodingRate(uint8_t cr) {
+    _cr = cr;
+
+    if(cr == CR_4_5) {
+
+        std::cout<< "in CR_4_5" <<std::endl;
+        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x72));
+    }
+    else if(cr == CR_4_6) {
+
+        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x74));
+    }
+    else if(cr == CR_4_7) {
+        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x76));
+    }
+    else if(cr == CR_4_8) {
+        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x78));
+    }
+    else
+        {std::cout << "Coding Rate paramater is not valide. Please enter 5 - 8 for '4/5' - '4/8'" <<std::endl;}
+
+
+    //writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (_bw<<4 & crRegValue<<1));
+    delay(100);
+    std::cout << "config2 reg value: " << readRegister(RH_RF95_REG_1D_MODEM_CONFIG1) << std::endl;
+
+}
+
+void Labb_RFM95::setModemConfigReg3() {
+
+    writeRegister(RH_RF95_REG_26_MODEM_CONFIG3, 0x04);  ///[7-4 bit: unused][3 bit: 0->static node / 1->mobile node] [2 bit: 0->LNA gain set by register LnaGain / 1->LNA gain set by the internal AGC loop][1-0 bit: reserved]
+
+}
+
+

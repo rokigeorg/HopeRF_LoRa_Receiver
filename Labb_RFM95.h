@@ -16,13 +16,17 @@
 #define CHANNEL 0
 
 #define RF95_SYMB_TIMEOUT   0x64 //0x08
-#define RF95_MAX_PAYLOAD_LENGTH 0x80
+#define RF95_MAX_PAYLOAD_LENGTH 0xff    //default accepted payload length -> all packages can be received
 #define PAYLOAD_LENGTH 0x40
 #define FREQ_HOP_PERIOD 0x00 //0x00 means freq hopping is turned off
 //define LNA_MAX_GAIN //LowNoiseAmplifier Gain if the gateway is not set in automatic gain controll
 
 #define SX1276_MODE_Continuos 0x85
 
+#define CR_4_5 5
+#define CR_4_6 6
+#define CR_4_7 7
+#define CR_4_8 8
 
 
 
@@ -173,8 +177,9 @@ public:
      * This function is the userfriendly way to init (set all registers) the RFM95 for receiving LoRa packages.
      * This function is based on the Single Channel LoRaWAN Gateway from Thomas Telkamp thomas@telkamp.eu . Thank you for his work.
      */
-    void SetupLoRa();
+    void defaultLoRaSetup();
 
+    void loraSetup(uint32_t fq, uint8_t sf , uint8_t cr);
     /**
      * writes zeros to the char buffer / array
      * @param arr
@@ -213,7 +218,20 @@ public:
     void rxReceivedLoRaPackage(uint8_t * arr);
 
 
+    /**
+     * This function sets the spreading factor.
+     * @param sf -> SFMode
+     */
+    void setSpredingFactor( uint8_t sf);
 
+
+    /**
+     * This function sets the coding rate
+     * @param cr
+     */
+    void setCodingRate(uint8_t cr);
+
+    void setModemConfigReg3();
 
     typedef enum {
         RHModeInitialising = 0, ///< Transport is initialising. Initial default value until init() is called..
@@ -223,6 +241,15 @@ public:
         RHModeRx                ///< Transport is in the process of receiving a message.
     } RHMode;
 
+    typedef enum {
+        SF6 = 6,
+        SF7 , ///< Spreeading Factor 7. Initial default value
+        SF8 ,
+        SF9,
+        SF10,
+        SF11,
+        SF12
+    } SFMode;
 private:
     /// Chipselect Pin
     volatile int _cs_pin;
@@ -234,8 +261,13 @@ private:
     volatile RHMode _mode;
     ///    Frequency
     uint32_t _freq; // in Mhz! (868.1)
-    /// Set spreading factor (SF7 - SF12)
+    ///  spreading factor (SF7 - SF12)
     uint8_t _sf;
+    /// Coding rate
+    uint8_t _cr;
+
+    ///Bandwith
+    uint8_t _bw;
 
     /// Index of next interrupt number to use in _deviceForInterrupt
     static uint8_t _interruptCount;

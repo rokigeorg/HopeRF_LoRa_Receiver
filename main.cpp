@@ -34,14 +34,29 @@ int main() {
     // prints all registers of the for debugging
     labb_rfm95.printAllRegisters();
 
-    labb_rfm95.SetupLoRa();
 
+    ///initsRFM95 with the standart parameters
+    //labb_rfm95.defaultLoRaSetup();
+
+    uint32_t frequncy = 868100000;
+    uint8_t spreadingFac = 7;
+    uint8_t codingRade = 6;
+    labb_rfm95.loraSetup(frequncy, spreadingFac, codingRade);
+
+/*
+    labb_rfm95.setFrequency(frequncy);
+    labb_rfm95.setSpredingFactor(spreadingFac);
+    labb_rfm95.setCodingRate(codingRade);*/
 
     char charBuffer[RH_RF95_MAX_PAYLOAD_LEN];
     uint8_t byteBuffer[RH_RF95_MAX_PAYLOAD_LEN];
 
     int bufLen = RH_RF95_MAX_PAYLOAD_LEN;
 
+
+    cout <<"******************"<< endl;
+    labb_rfm95.printAllRegisters();
+    printf("RH_RF95_REG_1D_MODEM_CONFIG1 : %X \n ", labb_rfm95.readRegister(RH_RF95_REG_1D_MODEM_CONFIG1));
 
     while(1){
 
