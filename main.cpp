@@ -21,34 +21,22 @@ using namespace std;
 
 
 
-int main() {
-
-    //WiringPi needs to be setup
-    //wiringPiSetup();
+int main(int argc, char* argv[]) {
 
     Labb_RFM95 labb_rfm95(6,7,0);
 
     //wait until RF95 is resetted
     while(!labb_rfm95.resetRFM95());
-    cout << "Starts the RFM95!" << endl;
-    // prints all registers of the for debugging
-    labb_rfm95.printAllRegisters();
 
+    cout << "Tries to start the RFM95!" << endl;
 
-    ///initsRFM95 with the standart parameters.
-    //labb_rfm95.defaultLoRaSetup();
+    if(labb_rfm95.checkCommandLineArgLoraSetup(argc, argv) == false)
+        return 1;
 
-    uint32_t frequncy = 868100000;
-    uint8_t spreadingFac = 7;
-    uint8_t codingRade = 6;
-    labb_rfm95.loraSetup(frequncy, spreadingFac, codingRade);
+    cout << "Tries to start the RFM95!" << endl;
 
-/*
-    labb_rfm95.setFrequency(frequncy);
-    labb_rfm95.setSpredingFactor(spreadingFac);
-    labb_rfm95.setCodingRate(codingRade);*/
-
-    char charBuffer[RH_RF95_MAX_PAYLOAD_LEN];
+    char * charArrPtr;
+    //char charBuffer[RH_RF95_MAX_PAYLOAD_LEN];
     uint8_t byteBuffer[RH_RF95_MAX_PAYLOAD_LEN];
 
     int bufLen = RH_RF95_MAX_PAYLOAD_LEN;
@@ -68,9 +56,6 @@ int main() {
         if(digitalRead(7) == true)//labb_rfm95.getIRQpin()
         {
 
-            cout <<"hello" <<endl;
-            labb_rfm95.handleInterrupt();
-
 
             if(labb_rfm95.readRegister(RH_RF95_REG_12_IRQ_FLAGS) == RH_RF95_PACKET_RECEPTION_COMPLETE){
                 printf("\n");
@@ -84,20 +69,17 @@ int main() {
                 printf("FiFo Addr Ptr: %x\n", labb_rfm95.readRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR));
 
             }
-            //labb_rfm95.handleInterrupt();
+            labb_rfm95.handleInterrupt();
             labb_rfm95.rxReceivedLoRaPackage(byteBuffer);
 
             //print buffer
             printf("Buffer: \n ");
-            static int i;
 
-            for(i=0; i < bufLen;i++){
+            charArrPtr = labb_rfm95.convertByteBufToCharBuf(byteBuffer, bufLen);
+            labb_rfm95.printCharBuffer(charArrPtr, bufLen);
 
-                charBuffer[i] = (char) byteBuffer[i];
-                printf("%c ", charBuffer[i]);
-            }
-            //fill the charBuffer to all 0
-            labb_rfm95.clearCharBuffer(charBuffer);
+            ///fill the charBuffer to all 0
+            labb_rfm95.clearCharBuffer(charArrPtr);
         }
 
     }

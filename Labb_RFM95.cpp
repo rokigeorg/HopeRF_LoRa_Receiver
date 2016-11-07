@@ -153,7 +153,7 @@ void Labb_RFM95::handleInterrupt() {
         uint8_t fiFo_Addr = readRegister(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR);
 
         writeRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR, fiFo_Addr);
-        printf("FiFo Addr Ptr: %x\n", readRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR));
+        printf("\n FiFo Addr Ptr: %x\n", readRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR));
 
         spiBurstRead(_buf, len);
         _bufLen = len;
@@ -328,9 +328,8 @@ void Labb_RFM95::loraSetup(uint32_t fq, uint8_t sf, uint8_t cr) {
         // exit(1);
     }
 
-    // Set Continous Sleep Mode
+    /// Set LONG_RANGE_MODE Mode
     writeRegister(RH_RF95_REG_01_OP_MODE, RH_RF95_LONG_RANGE_MODE);
-    printf("Set in LONG_RANGE_MODE. REG_OPMODE value: %x \n", readRegister(RH_RF95_REG_01_OP_MODE));
 
     ///set up freq on the RFM95
     setFrequency(_freq);
@@ -393,12 +392,9 @@ void Labb_RFM95::setCodingRate(uint8_t cr) {
     _cr = cr;
 
     if(cr == CR_4_5) {
-
-        std::cout<< "in CR_4_5" <<std::endl;
         writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x72));
     }
     else if(cr == CR_4_6) {
-
         writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x74));
     }
     else if(cr == CR_4_7) {
@@ -407,13 +403,11 @@ void Labb_RFM95::setCodingRate(uint8_t cr) {
     else if(cr == CR_4_8) {
         writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x78));
     }
-    else
-        {std::cout << "Coding Rate paramater is not valide. Please enter 5 - 8 for '4/5' - '4/8'" <<std::endl;}
+    else {
+        std::cout << "Coding Rate paramater is not valide. Please enter 5 - 8 for '4/5' - '4/8'" <<std::endl;
+    }
 
 
-    //writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (_bw<<4 & crRegValue<<1));
-    delay(100);
-    std::cout << "config2 reg value: " << readRegister(RH_RF95_REG_1D_MODEM_CONFIG1) << std::endl;
 
 }
 
@@ -421,6 +415,74 @@ void Labb_RFM95::setModemConfigReg3() {
 
     writeRegister(RH_RF95_REG_26_MODEM_CONFIG3, 0x04);  ///[7-4 bit: unused][3 bit: 0->static node / 1->mobile node] [2 bit: 0->LNA gain set by register LnaGain / 1->LNA gain set by the internal AGC loop][1-0 bit: reserved]
 
+}
+
+bool Labb_RFM95::checkCommandLineArgLoraSetup(int argcount, char **argvector) {
+
+    if (argcount < 3) {
+        explainUsage();
+        return false;
+    }
+
+    int argVal;
+    uint32_t freq;
+    uint8_t sf =7 , cr = 5;
+
+    for (int i = 1; i < argcount; ++i) {
+        if (std::string(argvector[i]) == "-f") {
+            if (i + 1 < argcount) { // Make sure we aren't at the end of argv!
+                argVal =  atoi(argvector[(i+1)]); // Increment 'i' so we don't get the argument as the next argv[i].
+                freq = (uint32_t) argVal;
+            }
+        } else if(std::string(argvector[i]) == "-sf"){
+            if (i + 1 < argcount) {
+                argVal = atoi(argvector[(i+1)]);
+                sf = (uint8_t) argVal;
+            }
+        }
+        else if(std::string(argvector[i]) == "-cr"){
+            if (i + 1 < argcount) {
+                argVal = atoi(argvector[(i+1)]);
+                cr = (uint8_t) argVal;
+            }
+        }
+        else if(std::string(argvector[i]) == "-h"){
+            explainUsage();
+        }
+    }
+
+    ///setup RFM95 Modul into continues receiving mode
+    loraSetup(freq, sf, cr);
+    return true;
+}
+
+void Labb_RFM95::explainUsage() {
+    std::cerr << "Usage: <option(s)> SOURCES"
+              << "Options:\n"
+              << "\t-h\t\tShow this help message\n"
+              << "\t-f\t\tfor entering frequency in Hz. After -f <freq-value>\n"
+              << "\t-sf\t\t for spreading factor as number. After -sf <spreading factor-value>  e.g. SF7 = 7\n"
+              << "\t-cr\t\t for coding rate as number. After -cr <coding rate-value>  e.g. 4/5 = 5\n" <<std::endl;
+
+}
+
+char *Labb_RFM95::convertByteBufToCharBuf(uint8_t *arr, int bufLen) {
+
+    static char charBuffer[RH_RF95_MAX_PAYLOAD_LEN];
+
+    for(int i=0; i < bufLen;i++){
+        charBuffer[i] = (char) arr[i];
+    }
+
+    return charBuffer;
+}
+
+void Labb_RFM95::printCharBuffer(const char *arr, int bufLen) {
+
+    int i=0;
+    for(i=0; i < bufLen;i++){
+        printf("%c", arr[i]);
+    }
 }
 
 

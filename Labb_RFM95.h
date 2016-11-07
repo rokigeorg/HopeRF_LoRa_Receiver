@@ -29,7 +29,6 @@
 #define CR_4_8 8
 
 
-
 class Labb_RFM95 {
 
 public:
@@ -179,12 +178,13 @@ public:
      */
     void defaultLoRaSetup();
 
-    void loraSetup(uint32_t fq, uint8_t sf , uint8_t cr);
+    void loraSetup(uint32_t fq, uint8_t sf, uint8_t cr);
+
     /**
      * writes zeros to the char buffer / array
      * @param arr
      */
-    void clearCharBuffer(char * arr);
+    void clearCharBuffer(char *arr);
 
     /**
      * This function returns the interrupt pin on which the RFM95 instance has been created
@@ -197,6 +197,7 @@ public:
      * @return -> _RST_pin
      */
     int getRSTpin();
+
     /**
      * This function returns the Chip select pin on which the RFM95 instance has been created
      * @return -> _cs_pin
@@ -215,14 +216,14 @@ public:
      * This function reads the latest received LoRa package from the FiFo (LoRa Data buffer)
      * @param arr -> it takes an byte array of max 256 byte to write the data to
      */
-    void rxReceivedLoRaPackage(uint8_t * arr);
+    void rxReceivedLoRaPackage(uint8_t *arr);
 
 
     /**
      * This function sets the spreading factor.
      * @param sf -> SFMode
      */
-    void setSpredingFactor( uint8_t sf);
+    void setSpredingFactor(uint8_t sf);
 
 
     /**
@@ -231,7 +232,31 @@ public:
      */
     void setCodingRate(uint8_t cr);
 
+    /** This function sets register modem config 3.
+     * It needs to be called when setting up frequency, spreading factor and coding rate.
+     * Speaking in generall all three config Modem registers needs to be set up.
+     */
     void setModemConfigReg3();
+
+    /**
+     * This function should be used, when the programm should be started from the command line with <options>.
+     * Valide <options> -f <freq value in Hz> -sf <spreading as number> -cr <coding rate as number>
+     * e.g. ( -f 868100 -sf 7 -cr 5 )
+     * It will check the option parameters and call the loraSetup(uint32_t fq, uint8_t sf , uint8_t cr) to init the RFM95.
+     * @param argcount -> number of arguments in the argvector
+     * @param argvector -> options array / vector
+     */
+    bool checkCommandLineArgLoraSetup(int argcount, char *argvector[]);
+
+
+    /**
+     * This function copies the given byte array into a char array
+     * @param arr -> takes the byte buffer / array, which was read from the RFM95 FiFo
+     * @return -> pointer to the filled up char array
+     */
+    char * convertByteBufToCharBuf(uint8_t *arr, int bufLen);
+
+    void printCharBuffer(const char *arr, int bufLen);
 
     typedef enum {
         RHModeInitialising = 0, ///< Transport is initialising. Initial default value until init() is called..
@@ -243,8 +268,8 @@ public:
 
     typedef enum {
         SF6 = 6,
-        SF7 , ///< Spreeading Factor 7. Initial default value
-        SF8 ,
+        SF7, ///< Spreeading Factor 7. Initial default value
+        SF8,
         SF9,
         SF10,
         SF11,
@@ -291,6 +316,12 @@ private:
     /// Count of the number of bad messages (correct checksum etc) received
     volatile uint16_t _txGood;
 
+
+    /**
+     * This funtion is a helper function for the  checkCommandLineArgLoraSetup().
+     * It prints out the possible input <options> on the command line.
+    */
+    void explainUsage();
 };
 
 
