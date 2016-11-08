@@ -12,6 +12,8 @@ debug:
 comprun:
 	rm main && $(CC) $(CFLAGS) $(LIBS) $(OBJS) -o main
 	sudo ./main -f 868100000 -sf 7 -cr 5
+run:
+	sudo ./main -f 868100000 -sf 7 -cr 5
 
 clean:
 	rm main

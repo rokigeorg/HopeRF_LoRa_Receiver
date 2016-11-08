@@ -296,11 +296,12 @@ void Labb_RFM95::rxReceivedLoRaPackage(uint8_t *arr) {
     /// the last packet received can be easily read by pointing the FifoAddrPtr to this register.
 
     uint8_t fiFo_Addr = readRegister(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR);
+    fiFo_Addr = (uint8_t) (fiFo_Addr + 0x02);
     writeRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR, fiFo_Addr);
 
     // Have received a packet
     uint8_t receivedCount = readRegister(RH_RF95_REG_13_RX_NB_BYTES);     //read register which tells the Number of received bytes
-    uint8_t receivedbytes = receivedCount;
+    uint8_t receivedbytes = (uint8_t) (receivedCount - 2);
 
     for(int i = 0; i < receivedbytes; i++)
     {
@@ -406,9 +407,6 @@ void Labb_RFM95::setCodingRate(uint8_t cr) {
     else {
         std::cout << "Coding Rate paramater is not valide. Please enter 5 - 8 for '4/5' - '4/8'" <<std::endl;
     }
-
-
-
 }
 
 void Labb_RFM95::setModemConfigReg3() {
@@ -470,7 +468,7 @@ char *Labb_RFM95::convertByteBufToCharBuf(uint8_t *arr, int bufLen) {
 
     static char charBuffer[RH_RF95_MAX_PAYLOAD_LEN];
 
-    for(int i=2; i < bufLen;i++){
+    for(int i=0; i < bufLen;i++){
         charBuffer[i] = (char) arr[i];
     }
 
@@ -487,6 +485,17 @@ void Labb_RFM95::printCharBuffer(const char *arr, int bufLen) {
 
 uint8_t Labb_RFM95::getBufLen() {
     return _bufLen;
+}
+
+uint8_t *Labb_RFM95::shiftBuf(uint8_t *arr,const int bufLen, int offset) {
+
+    static uint8_t shiftedBuf[RH_RF95_MAX_PAYLOAD_LEN];
+
+    for(int i=2; i < bufLen;i++){
+        shiftedBuf[i] = arr[i];
+    }
+
+    return shiftedBuf;
 }
 
 

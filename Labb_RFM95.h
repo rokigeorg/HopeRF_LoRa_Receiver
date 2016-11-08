@@ -1,6 +1,6 @@
 //
 // Created by Georg Rokita on 03.11.16.
-// This Class includes code from Thomas Telkamp thomas@telkamp.eu and the Single Channel LoRaWAN Gateway and also the radio Library RFM95
+// This Class includes code from Thomas Telkamp thomas@telkamp.eu and the Single Channel LoRaWAN Gateway and also the Radio Head Library RFM95
 // It implies the following dependencies
 // SPI  enabled on the Raspberry Pi
 // WiringPi: a GPIO access library written in C for the BCM2835 used in the Raspberry Pi. sudo apt-get install wiringpi see http://wiringpi.com
@@ -269,6 +269,8 @@ public:
      * @return uint8-t number of received bytes
      */
     uint8_t getBufLen();
+
+    uint8_t * shiftBuf(uint8_t *arr,const int bufLen, int offset);
 
     typedef enum {
         RHModeInitialising = 0, ///< Transport is initialising. Initial default value until init() is called..
