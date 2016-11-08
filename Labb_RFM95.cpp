@@ -470,7 +470,7 @@ char *Labb_RFM95::convertByteBufToCharBuf(uint8_t *arr, int bufLen) {
 
     static char charBuffer[RH_RF95_MAX_PAYLOAD_LEN];
 
-    for(int i=0; i < bufLen;i++){
+    for(int i=2; i < bufLen;i++){
         charBuffer[i] = (char) arr[i];
     }
 
@@ -483,6 +483,10 @@ void Labb_RFM95::printCharBuffer(const char *arr, int bufLen) {
     for(i=0; i < bufLen;i++){
         printf("%c", arr[i]);
     }
+}
+
+uint8_t Labb_RFM95::getBufLen() {
+    return _bufLen;
 }
 
 

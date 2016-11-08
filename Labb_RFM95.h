@@ -256,7 +256,19 @@ public:
      */
     char * convertByteBufToCharBuf(uint8_t *arr, int bufLen);
 
+    /**
+     * This function prints an char array to the screen
+     * @param arr
+     * @param bufLen
+     */
     void printCharBuffer(const char *arr, int bufLen);
+
+
+    /**
+     * This function returns the number of received Bytes
+     * @return uint8-t number of received bytes
+     */
+    uint8_t getBufLen();
 
     typedef enum {
         RHModeInitialising = 0, ///< Transport is initialising. Initial default value until init() is called..

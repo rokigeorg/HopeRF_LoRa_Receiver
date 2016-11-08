@@ -13,38 +13,61 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 
+#include "AES.h"
+
 #include "RFM95registers.h"
 #include "Labb_RFM95.h"
 
 
 using namespace std;
 
+// create AES instance
+AES aes;
+
+uint8_t * decrypData(uint8_t cipher[], int sizeOfPayload)
+{
+    unsigned char key[] = "0123456789010123";
+    unsigned long long int my_iv = 36753562;
+
+    // arr to hold the IV (i... vector), plain_p ???,  cipher( encrypted data), check (decrypted data)
+    uint8_t iv [N_BLOCK];
+    uint8_t plain_p[sizeOfPayload+7];
+    //uint8_t cipher[(sizeOfPayload+7)];
+    uint8_t check [sizeOfPayload+7] ;
+    int bits = 128;
+
+    //This function increased the VI by one step in order to have a different IV each time
+    aes.iv_inc();
+
+    aes.set_IV(my_iv);  // Sets IV (initialization vector) and IVC (IV counter). This function changes the ivc and iv variables needed for AES.
+    aes.get_IV(iv);     //This function return the IV @param out byte pointer that gets the IV. @return none but the IV is writed to the out pointer.
+    aes.do_aes_decrypt(cipher,sizeOfPayload,check,key,bits,iv); // encrypt (AES) data in plain[] and write it into cipher[]
+
+    return check;
+}
 
 
 int main(int argc, char* argv[]) {
-
+    ///create instance of the Labb_RFM95 class
     Labb_RFM95 labb_rfm95(6,7,0);
 
-    //wait until RF95 is resetted
+    ///wait until RF95 is resetted
     while(!labb_rfm95.resetRFM95());
 
     cout << "Tries to start the RFM95!" << endl;
-
+    ///check the command line args and start the RFM95 Modul in LoRa Mode continues receive Mode
     if(labb_rfm95.checkCommandLineArgLoraSetup(argc, argv) == false)
         return 1;
 
-    cout << "Tries to start the RFM95!" << endl;
+    cout << "RFM95 is setup in LoRa continues receive mode!" << endl;
+    cout <<"******************"<< endl;
+    labb_rfm95.printAllRegisters();
 
+    uint8_t * decryDataArrPtr;
     char * charArrPtr;
-    //char charBuffer[RH_RF95_MAX_PAYLOAD_LEN];
     uint8_t byteBuffer[RH_RF95_MAX_PAYLOAD_LEN];
 
     int bufLen = RH_RF95_MAX_PAYLOAD_LEN;
-
-
-    cout <<"******************"<< endl;
-    labb_rfm95.printAllRegisters();
-    printf("RH_RF95_REG_1D_MODEM_CONFIG1 : %X \n ", labb_rfm95.readRegister(RH_RF95_REG_1D_MODEM_CONFIG1));
 
     while(1){
 
@@ -72,11 +95,16 @@ int main(int argc, char* argv[]) {
             labb_rfm95.handleInterrupt();
             labb_rfm95.rxReceivedLoRaPackage(byteBuffer);
 
+            ///decrypt the received Bytes
+            //decryDataArrPtr = decrypData(byteBuffer, (int) labb_rfm95.getBufLen());
+
             //print buffer
             printf("Buffer: \n ");
 
             charArrPtr = labb_rfm95.convertByteBufToCharBuf(byteBuffer, bufLen);
-            labb_rfm95.printCharBuffer(charArrPtr, bufLen);
+            //charArrPtr = labb_rfm95.convertByteBufToCharBuf(decryDataArrPtr, (int) labb_rfm95.getBufLen());
+            //labb_rfm95.printCharBuffer(charArrPtr, bufLen);
+            labb_rfm95.printCharBuffer(charArrPtr, (int) labb_rfm95.getBufLen());
 
             ///fill the charBuffer to all 0
             labb_rfm95.clearCharBuffer(charArrPtr);
