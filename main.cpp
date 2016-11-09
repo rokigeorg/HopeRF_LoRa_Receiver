@@ -68,10 +68,10 @@ uint8_t * decrypData(uint8_t cipher[], int sizeOfPayload)
     int bits = 128;
 
     //This function increased the VI by one step in order to have a different IV each time
-    aes.iv_inc();
+    //aes.iv_inc();
 
-    aes.set_IV(my_iv);  // Sets IV (initialization vector) and IVC (IV counter). This function changes the ivc and iv variables needed for AES.
-    aes.get_IV(iv);     //This function return the IV @param out byte pointer that gets the IV. @return none but the IV is writed to the out pointer.
+    //aes.set_IV(my_iv);  // Sets IV (initialization vector) and IVC (IV counter). This function changes the ivc and iv variables needed for AES.
+    //aes.get_IV(iv);     //This function return the IV @param out byte pointer that gets the IV. @return none but the IV is writed to the out pointer.
 
     cout << "IV: " ;
     for(int i =0; i<N_BLOCK;i++){
