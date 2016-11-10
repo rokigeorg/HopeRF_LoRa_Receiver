@@ -15,7 +15,6 @@
 
 #include "AES.h"
 
-#include "RFM95registers.h"
 #include "Labb_RFM95.h"
 
 

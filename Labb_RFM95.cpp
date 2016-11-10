@@ -9,16 +9,6 @@
 
 #include "Labb_RFM95.h"
 
-#define RF95_FREQ 868100000 //868.1 MHz
-#define RF95_SF 7
-
-
-template <typename T, size_t N>
-inline
-size_t SizeOfArray( const T(&)[ N ] )
-{
-    return N;
-}
 
 Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin) {
     std::cout <<"Build instance of the Labb_RFM95.\n";
@@ -28,7 +18,6 @@ Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin) {
     pinMode(irq_pin, INPUT);
     pinMode(RST_pin, OUTPUT);
 
-    //int fd =
     wiringPiSPISetup(CHANNEL, 500000);
 
     _cs_pin =cs_pin;
@@ -91,12 +80,12 @@ void Labb_RFM95::writeRegister(uint8_t addr, uint8_t value)
 
 void Labb_RFM95::printAllRegisters(){
     //registers I want to read
-    uint8_t registers[] = {REG_FIFO, REG_OPMODE, RH_RF95_REG_02_RESERVED, RH_RF95_REG_03_RESERVED, RH_RF95_REG_04_RESERVED, RH_RF95_REG_05_RESERVED, RH_RF95_REG_06_FRF_MSB, RH_RF95_REG_07_FRF_MID, RH_RF95_REG_08_FRF_LSB , RH_RF95_REG_09_PA_CONFIG, RH_RF95_REG_0A_PA_RAMP, RH_RF95_REG_0B_OCP , RH_RF95_REG_0C_LNA ,
+    uint8_t registers[] = {RH_RF95_REG_00_FIFO, RH_RF95_REG_01_OP_MODE, RH_RF95_REG_02_RESERVED, RH_RF95_REG_03_RESERVED, RH_RF95_REG_04_RESERVED, RH_RF95_REG_05_RESERVED, RH_RF95_REG_06_FRF_MSB, RH_RF95_REG_07_FRF_MID, RH_RF95_REG_08_FRF_LSB , RH_RF95_REG_09_PA_CONFIG, RH_RF95_REG_0A_PA_RAMP, RH_RF95_REG_0B_OCP , RH_RF95_REG_0C_LNA ,
                            RH_RF95_REG_0D_FIFO_ADDR_PTR, RH_RF95_REG_0E_FIFO_TX_BASE_ADDR,RH_RF95_REG_0F_FIFO_RX_BASE_ADDR , RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR, RH_RF95_REG_11_IRQ_FLAGS_MASK,RH_RF95_REG_12_IRQ_FLAGS, RH_RF95_REG_13_RX_NB_BYTES, RH_RF95_REG_14_RX_HEADER_CNT_VALUE_MSB,
                            RH_RF95_REG_15_RX_HEADER_CNT_VALUE_LSB, RH_RF95_REG_16_RX_PACKET_CNT_VALUE_MSB, RH_RF95_REG_17_RX_PACKET_CNT_VALUE_LSB,RH_RF95_REG_18_MODEM_STAT,
                            RH_RF95_REG_19_PKT_SNR_VALUE,RH_RF95_REG_1A_PKT_RSSI_VALUE,RH_RF95_REG_1B_RSSI_VALUE,RH_RF95_REG_1C_HOP_CHANNEL,RH_RF95_REG_1D_MODEM_CONFIG1, RH_RF95_REG_1E_MODEM_CONFIG2, RH_RF95_REG_1F_SYMB_TIMEOUT_LSB, RH_RF95_REG_20_PREAMBLE_MSB ,RH_RF95_REG_21_PREAMBLE_LSB, RH_RF95_REG_22_PAYLOAD_LENGTH, RH_RF95_REG_23_MAX_PAYLOAD_LENGTH ,RH_RF95_REG_24_HOP_PERIOD, RH_RF95_REG_25_FIFO_RX_BYTE_ADDR,RH_RF95_REG_26_MODEM_CONFIG3};
 
-    std::string registerNames[] = {"REG_FIFO","REG_OPMODE", "RH_RF95_REG_02_RESERVED", "RH_RF95_REG_03_RESERVED", "RH_RF95_REG_04_RESERVED", "RH_RF95_REG_05_RESERVED", "RH_RF95_REG_06_FRF_MSB", "RH_RF95_REG_07_FRF_MID", "RH_RF95_REG_08_FRF_LSB" , "RH_RF95_REG_09_PA_CONFIG", "RH_RF95_REG_0A_PA_RAMP", "RH_RF95_REG_0B_OCP", "RH_RF95_REG_0C_LNA" ,
+    std::string registerNames[] = {"RH_RF95_REG_00_FIFO","RH_RF95_REG_01_OP_MODE", "RH_RF95_REG_02_RESERVED", "RH_RF95_REG_03_RESERVED", "RH_RF95_REG_04_RESERVED", "RH_RF95_REG_05_RESERVED", "RH_RF95_REG_06_FRF_MSB", "RH_RF95_REG_07_FRF_MID", "RH_RF95_REG_08_FRF_LSB" , "RH_RF95_REG_09_PA_CONFIG", "RH_RF95_REG_0A_PA_RAMP", "RH_RF95_REG_0B_OCP", "RH_RF95_REG_0C_LNA" ,
                               "RH_RF95_REG_0D_FIFO_ADDR_PTR", "RH_RF95_REG_0E_FIFO_TX_BASE_ADDR","RH_RF95_REG_0F_FIFO_RX_BASE_ADDR" , "RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR", "RH_RF95_REG_11_IRQ_FLAGS_MASK","RH_RF95_REG_12_IRQ_FLAGS", "RH_RF95_REG_13_RX_NB_BYTES", "RH_RF95_REG_14_RX_HEADER_CNT_VALUE_MSB",
                               "RH_RF95_REG_15_RX_HEADER_CNT_VALUE_LSB", "RH_RF95_REG_16_RX_PACKET_CNT_VALUE_MSB", "RH_RF95_REG_17_RX_PACKET_CNT_VALUE_LSB","RH_RF95_REG_18_MODEM_STAT",
                               "RH_RF95_REG_19_PKT_SNR_VALUE","RH_RF95_REG_1A_PKT_RSSI_VALUE","RH_RF95_REG_1B_RSSI_VALUE","RH_RF95_REG_1C_HOP_CHANNEL","RH_RF95_REG_1D_MODEM_CONFIG1", "RH_RF95_REG_1E_MODEM_CONFIG2","RH_RF95_REG_1F_SYMB_TIMEOUT_LSB", "RH_RF95_REG_20_PREAMBLE_MSB","RH_RF95_REG_21_PREAMBLE_LSB", "RH_RF95_REG_22_PAYLOAD_LENGTH", "RH_RF95_REG_23_MAX_PAYLOAD_LENGTH" ,"RH_RF95_REG_24_HOP_PERIOD", "RH_RF95_REG_25_FIFO_RX_BYTE_ADDR","RH_RF95_REG_26_MODEM_CONFIG3"};
@@ -130,7 +119,6 @@ void Labb_RFM95:: spiBurstRead(uint8_t * payload , uint8_t size)
     for(int i = 0; i < receivedbytes; i++)
     {
         payload[i] = readRegister(RH_RF95_REG_00_FIFO);
-        //_buf[i] = readRegister(REG_FIFO);
     }
 }
 
@@ -162,7 +150,7 @@ void Labb_RFM95::handleInterrupt() {
         // Remember the RSSI of this packet
         // this is according to the doc, but is it really correct?
         // weakest receiveable signals are reported RSSI at about -66
-        _lastRssi = readRegister(RH_RF95_REG_1A_PKT_RSSI_VALUE) - 137;
+        _lastRssi = (int8_t) (readRegister(RH_RF95_REG_1A_PKT_RSSI_VALUE) - 137);
     }
 }
 
@@ -229,7 +217,7 @@ void Labb_RFM95::defaultLoRaSetup()
 
     // Set Continous Sleep Mode
     writeRegister(RH_RF95_REG_01_OP_MODE, RH_RF95_LONG_RANGE_MODE);
-    printf("Set in LONG_RANGE_MODE. REG_OPMODE value: %x \n", readRegister(RH_RF95_REG_01_OP_MODE));
+    printf("Set in LONG_RANGE_MODE. RH_RF95_REG_01_OP_MODE value: %x \n", readRegister(RH_RF95_REG_01_OP_MODE));
 
     //set Frequency to 868.1 MHz by default
     printf("Set frequency to: %d Hz\n", _freq);
