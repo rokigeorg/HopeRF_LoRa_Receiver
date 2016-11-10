@@ -28,6 +28,8 @@
 #define CR_4_7 7
 #define CR_4_8 8
 
+#define RX_ENCRYPTED_BUFFER 16
+
 
 class Labb_RFM95 {
 
@@ -270,7 +272,9 @@ public:
      */
     uint8_t getBufLen();
 
-    uint8_t * shiftBuf(uint8_t *arr,const int bufLen, int offset);
+    uint8_t * shiftBuf(uint8_t *arr,const int bufLen);
+
+    void printOutByteBuf();
 
     typedef enum {
         RHModeInitialising = 0, ///< Transport is initialising. Initial default value until init() is called..

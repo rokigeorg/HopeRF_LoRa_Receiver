@@ -153,7 +153,7 @@ void Labb_RFM95::handleInterrupt() {
         uint8_t fiFo_Addr = readRegister(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR);
 
         writeRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR, fiFo_Addr);
-        printf("\n FiFo Addr Ptr: %x\n", readRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR));
+        //printf("\n FiFo Addr Ptr: %x\n", readRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR));
 
         spiBurstRead(_buf, len);
         _bufLen = len;
@@ -296,18 +296,18 @@ void Labb_RFM95::rxReceivedLoRaPackage(uint8_t *arr) {
     /// the last packet received can be easily read by pointing the FifoAddrPtr to this register.
 
     uint8_t fiFo_Addr = readRegister(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR);
-    fiFo_Addr = (uint8_t) (fiFo_Addr + 0x02);
+    //fiFo_Addr = (uint8_t) (fiFo_Addr + 0x02);
+    fiFo_Addr = fiFo_Addr ;
     writeRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR, fiFo_Addr);
 
     // Have received a packet
     uint8_t receivedCount = readRegister(RH_RF95_REG_13_RX_NB_BYTES);     //read register which tells the Number of received bytes
-    uint8_t receivedbytes = (uint8_t) (receivedCount - 2);
+    uint8_t receivedbytes = receivedCount;
 
     for(int i = 0; i < receivedbytes; i++)
     {
         arr[i] = readRegister(RH_RF95_REG_00_FIFO);
     }
-
 }
 
 void Labb_RFM95::loraSetup(uint32_t fq, uint8_t sf, uint8_t cr) {
@@ -487,15 +487,34 @@ uint8_t Labb_RFM95::getBufLen() {
     return _bufLen;
 }
 
-uint8_t *Labb_RFM95::shiftBuf(uint8_t *arr,const int bufLen, int offset) {
+uint8_t *Labb_RFM95::shiftBuf(uint8_t *arr,const int bufLen) {
 
-    static uint8_t shiftedBuf[RH_RF95_MAX_PAYLOAD_LEN];
+    //static uint8_t shiftedBuf[RH_RF95_MAX_PAYLOAD_LEN];
 
-    for(int i=2; i < bufLen;i++){
-        shiftedBuf[i] = arr[i];
+    static uint8_t shiftedBuf[(RX_ENCRYPTED_BUFFER +1)];
+
+    int endData = bufLen;
+
+    int j=0;
+    for(int i=4; i < endData;i++){
+
+        shiftedBuf[j] = arr[i];
+        ++j;
+
     }
 
     return shiftedBuf;
+}
+
+void Labb_RFM95::printOutByteBuf() {
+
+    std::cout << "private Byte Buffer: ";
+
+    for (int i = 0 ; i < RH_RF95_MAX_PAYLOAD_LEN ; i++)
+    {
+        printf ("%x",_buf[i]) ;
+    }
+    printf ("\n") ;
 }
 
 

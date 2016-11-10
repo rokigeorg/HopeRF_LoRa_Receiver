@@ -23,64 +23,39 @@ using namespace std;
 
 // create AES instance
 AES aes;
-/*
 
-uint8_t * decrypData(uint8_t cipher[], int sizeOfPayload)
+
+
+void print_value (char * str, uint8_t * a, int bytes)
 {
-    unsigned char key[] = "0123456789010123";
-    unsigned long long int my_iv = 36753562;
+    printf ("%s ", str) ;
 
-    // arr to hold the IV (i... vector), plain_p ???,  cipher( encrypted data), check (decrypted data)
-    uint8_t iv [N_BLOCK] = {15420848200001542084820000};
-    uint8_t plain_p[sizeOfPayload+7];
-    //uint8_t cipher[(sizeOfPayload+7)];
-    uint8_t check [sizeOfPayload+7] ;
-    int bits = 128;
-
-    //This function increased the VI by one step in order to have a different IV each time
-    //aes.iv_inc();
-
-    //aes.set_IV(my_iv);  // Sets IV (initialization vector) and IVC (IV counter). This function changes the ivc and iv variables needed for AES.
-    //aes.get_IV(iv);     //This function return the IV @param out byte pointer that gets the IV. @return none but the IV is writed to the out pointer.
-
-    cout << "IV: " ;
-    for(int i =0; i<N_BLOCK;i++){
-        printf("%d",iv[i]);
+    int end =bytes;
+    for (int i = 0 ; i < end ; i++)
+    {
+        printf ("%x",a[i]) ;
     }
-    cout <<"\n";
-    aes.do_aes_decrypt(cipher,sizeOfPayload,check,key,bits,iv); // encrypt (AES) data in plain[] and write it into cipher[]
-
-    return check;
+    printf ("\n") ;
 }
-*/
 
-
-uint8_t * decrypData(uint8_t cipher[], int sizeOfPayload)
+uint8_t * decrypData(uint8_t cipher[])
 {
-    uint8_t key[] = "01234567899876543210012345678998";
-    unsigned long long int my_iv = 36753562;
+    uint8_t key[] = "0123456789987654";
+    static uint8_t plain [N_BLOCK] ;
+    uint8_t bits = 128;
 
-    // arr to hold the IV (i... vector), plain_p (data after decryption),  cipher( encrypted data), check (decrypted data)
-    uint8_t iv [N_BLOCK];
-    uint8_t plain_p[sizeOfPayload+7];
-    //byte cipher[(sizeOfPayload+7)] ;
-    uint8_t check [sizeOfPayload+7] ;
-    int bits = 128;
+    uint8_t succ ;
 
-    //This function increased the VI by one step in order to have a different IV each time
-    //aes.iv_inc();
+    /// Set key
+    succ = aes.set_key (key, bits) ;
+    if (succ != SUCCESS)
+         cout <<"Failure set_key" << endl ;
 
-    //aes.set_IV(my_iv);  // Sets IV (initialization vector) and IVC (IV counter). This function changes the ivc and iv variables needed for AES.
-    //aes.get_IV(iv);     //This function return the IV @param out byte pointer that gets the IV. @return none but the IV is writed to the out pointer.
+    succ = aes.decrypt (cipher, plain) ;
+    if (succ != SUCCESS)
+        cout <<"Failure encrypt" << endl ;
 
-    cout << "IV: " ;
-    for(int i =0; i<N_BLOCK;i++){
-        printf("%d",iv[i]);
-    }
-    //aes.do_aes_encrypt(plain,sizeOfPayload,cipher,key,bits,iv); // encrypt (AES) data in plain[] and write it into cipher[]
-    aes.do_aes_decrypt(cipher,sizeOfPayload,check,key,bits); // encrypt (AES) data in plain[] and write it into cipher[]
-
-    return cipher;
+    return plain;
 }
 
 int main(int argc, char* argv[]) {
@@ -102,6 +77,7 @@ int main(int argc, char* argv[]) {
     uint8_t * decryDataArrPtr;
     char * charArrPtr;
     uint8_t byteBuffer[RH_RF95_MAX_PAYLOAD_LEN];
+    uint8_t * encrypDataArrptr;
 
     int bufLen = RH_RF95_MAX_PAYLOAD_LEN;
 
@@ -123,7 +99,7 @@ int main(int argc, char* argv[]) {
                 printf("Interrupt Register: %x\n", labb_rfm95.readRegister(RH_RF95_REG_12_IRQ_FLAGS));
                 printf("\n");
                 printf("Byte Addr of the last writen Rx Byte: %x\n", labb_rfm95.readRegister(RH_RF95_REG_25_FIFO_RX_BYTE_ADDR));
-                printf("Received Number of Bytes: %x\n", labb_rfm95.readRegister(RH_RF95_REG_13_RX_NB_BYTES));
+                printf("Received Number of Bytes: 0x%x dec:%d \n", labb_rfm95.readRegister(RH_RF95_REG_13_RX_NB_BYTES),labb_rfm95.readRegister(RH_RF95_REG_13_RX_NB_BYTES));
                 printf("FiFo Current Rx Addr: %x\n", labb_rfm95.readRegister(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR));
                 printf("FiFo Addr Ptr: %x\n", labb_rfm95.readRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR));
 
@@ -131,10 +107,17 @@ int main(int argc, char* argv[]) {
             labb_rfm95.handleInterrupt();
             labb_rfm95.rxReceivedLoRaPackage(byteBuffer);
 
-            ///copy the rec
+            ///print out the received bytes / byteBuf
+            print_value ((char *) "ByteBuffer: ", byteBuffer, (int) labb_rfm95.getBufLen());
+
+            /// cut of the 2Byte sinnlos am anfang & 4bytes sinnlos am ende
+            encrypDataArrptr = labb_rfm95.shiftBuf(byteBuffer,(int) labb_rfm95.getBufLen());
+
+            ///print out the received bytes / byteBuf
+            print_value ((char *) "encrypDataBuffer: ", encrypDataArrptr, RX_ENCRYPTED_BUFFER);
 
             ///decrypt the received Bytes
-            decryDataArrPtr = decrypData(byteBuffer, (int) labb_rfm95.getBufLen());
+            decryDataArrPtr = decrypData(encrypDataArrptr);
 
             //print buffer
             printf("Buffer:\n");
@@ -146,8 +129,10 @@ int main(int argc, char* argv[]) {
 
             ///fill the charBuffer to all 0
             labb_rfm95.clearCharBuffer(charArrPtr);
-        }
 
+
+            memset(byteBuffer, 0, sizeof byteBuffer);
+        }
     }
 
     return 0;
