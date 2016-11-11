@@ -274,9 +274,7 @@ public:
      */
     uint8_t getBufLen();
 
-<<<<<<< Updated upstream
-    uint8_t * shiftBuf(uint8_t *arr,const int bufLen, int offset);
-=======
+
     uint8_t * shiftBuf(uint8_t *arr,const int bufLen);
 
     /**
@@ -284,7 +282,7 @@ public:
      */
 
     void printOutByteBuf();
->>>>>>> Stashed changes
+
 
     /**
      *  Getter method for _debug

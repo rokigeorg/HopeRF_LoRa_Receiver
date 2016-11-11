@@ -510,8 +510,7 @@ uint8_t *Labb_RFM95::shiftBuf(uint8_t *arr,const int bufLen, int offset) {
     return shiftedBuf;
 }
 
-<<<<<<< Updated upstream
-=======
+
 void Labb_RFM95::printOutByteBuf() {
 
     std::cout << "private Byte Buffer: ";
@@ -604,6 +603,3 @@ uint8_t *Labb_RFM95::decrypData(uint8_t *cipher) {
 
     return plain;
 }
-
->>>>>>> Stashed changes
-
