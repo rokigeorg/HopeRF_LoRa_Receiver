@@ -36,12 +36,21 @@ Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin):AES() {
     _irq_pin =irq_pin;
     _RST_pin= RST_pin;
     _mode = RHModeIdle;
-    _freq = 868100000;      /////868.1 MHz
-    _sf = 7;                ///SF 6 64 chips/symbol; SF 7 128 chips/symbol (default); SF 8 256 chips/symbol; SF 9 512 chips/symbol; SF 10 1024 chips/symbol; SF 11 2048 chips/symbol; SF 12 4096 chips/symbol
+    _freq = 868100000;      ///// 868.1 MHz
+    _sf = 7;                /// SF 6 64 chips/symbol; SF 7 128 chips/symbol (default); SF 8 256 chips/symbol; SF 9 512 chips/symbol; SF 10 1024 chips/symbol; SF 11 2048 chips/symbol; SF 12 4096 chips/symbol
     _bw = 0x07;             /// default Bandwidth 125.0 kHZ
     _debug = true;
+    _palyoadEncryp = true;  /// if payload is encrypted or not
+
 }
 
+bool Labb_RFM95::is_palyoadEncryp() const {
+    return _palyoadEncryp;
+}
+
+void Labb_RFM95::set_palyoadEncryp(bool _palyoadEncryp) {
+    Labb_RFM95::_palyoadEncryp = _palyoadEncryp;
+}
 
 
 Labb_RFM95::~Labb_RFM95() {
@@ -103,12 +112,12 @@ void Labb_RFM95::writeRegister(uint8_t addr, uint8_t value)
 
 void Labb_RFM95::printAllRegisters(){
     //registers I want to read
-    uint8_t registers[] = {REG_FIFO, REG_OPMODE, RH_RF95_REG_02_RESERVED, RH_RF95_REG_03_RESERVED, RH_RF95_REG_04_RESERVED, RH_RF95_REG_05_RESERVED, RH_RF95_REG_06_FRF_MSB, RH_RF95_REG_07_FRF_MID, RH_RF95_REG_08_FRF_LSB , RH_RF95_REG_09_PA_CONFIG, RH_RF95_REG_0A_PA_RAMP, RH_RF95_REG_0B_OCP , RH_RF95_REG_0C_LNA ,
+    uint8_t registers[] = {RH_RF95_REG_00_FIFO, RH_RF95_REG_01_OP_MODE, RH_RF95_REG_02_RESERVED, RH_RF95_REG_03_RESERVED, RH_RF95_REG_04_RESERVED, RH_RF95_REG_05_RESERVED, RH_RF95_REG_06_FRF_MSB, RH_RF95_REG_07_FRF_MID, RH_RF95_REG_08_FRF_LSB , RH_RF95_REG_09_PA_CONFIG, RH_RF95_REG_0A_PA_RAMP, RH_RF95_REG_0B_OCP , RH_RF95_REG_0C_LNA ,
                            RH_RF95_REG_0D_FIFO_ADDR_PTR, RH_RF95_REG_0E_FIFO_TX_BASE_ADDR,RH_RF95_REG_0F_FIFO_RX_BASE_ADDR , RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR, RH_RF95_REG_11_IRQ_FLAGS_MASK,RH_RF95_REG_12_IRQ_FLAGS, RH_RF95_REG_13_RX_NB_BYTES, RH_RF95_REG_14_RX_HEADER_CNT_VALUE_MSB,
                            RH_RF95_REG_15_RX_HEADER_CNT_VALUE_LSB, RH_RF95_REG_16_RX_PACKET_CNT_VALUE_MSB, RH_RF95_REG_17_RX_PACKET_CNT_VALUE_LSB,RH_RF95_REG_18_MODEM_STAT,
                            RH_RF95_REG_19_PKT_SNR_VALUE,RH_RF95_REG_1A_PKT_RSSI_VALUE,RH_RF95_REG_1B_RSSI_VALUE,RH_RF95_REG_1C_HOP_CHANNEL,RH_RF95_REG_1D_MODEM_CONFIG1, RH_RF95_REG_1E_MODEM_CONFIG2, RH_RF95_REG_1F_SYMB_TIMEOUT_LSB, RH_RF95_REG_20_PREAMBLE_MSB ,RH_RF95_REG_21_PREAMBLE_LSB, RH_RF95_REG_22_PAYLOAD_LENGTH, RH_RF95_REG_23_MAX_PAYLOAD_LENGTH ,RH_RF95_REG_24_HOP_PERIOD, RH_RF95_REG_25_FIFO_RX_BYTE_ADDR,RH_RF95_REG_26_MODEM_CONFIG3};
 
-    std::string registerNames[] = {"REG_FIFO","REG_OPMODE", "RH_RF95_REG_02_RESERVED", "RH_RF95_REG_03_RESERVED", "RH_RF95_REG_04_RESERVED", "RH_RF95_REG_05_RESERVED", "RH_RF95_REG_06_FRF_MSB", "RH_RF95_REG_07_FRF_MID", "RH_RF95_REG_08_FRF_LSB" , "RH_RF95_REG_09_PA_CONFIG", "RH_RF95_REG_0A_PA_RAMP", "RH_RF95_REG_0B_OCP", "RH_RF95_REG_0C_LNA" ,
+    std::string registerNames[] = {"RH_RF95_REG_00_FIFO","RH_RF95_REG_01_OP_MODE", "RH_RF95_REG_02_RESERVED", "RH_RF95_REG_03_RESERVED", "RH_RF95_REG_04_RESERVED", "RH_RF95_REG_05_RESERVED", "RH_RF95_REG_06_FRF_MSB", "RH_RF95_REG_07_FRF_MID", "RH_RF95_REG_08_FRF_LSB" , "RH_RF95_REG_09_PA_CONFIG", "RH_RF95_REG_0A_PA_RAMP", "RH_RF95_REG_0B_OCP", "RH_RF95_REG_0C_LNA" ,
                               "RH_RF95_REG_0D_FIFO_ADDR_PTR", "RH_RF95_REG_0E_FIFO_TX_BASE_ADDR","RH_RF95_REG_0F_FIFO_RX_BASE_ADDR" , "RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR", "RH_RF95_REG_11_IRQ_FLAGS_MASK","RH_RF95_REG_12_IRQ_FLAGS", "RH_RF95_REG_13_RX_NB_BYTES", "RH_RF95_REG_14_RX_HEADER_CNT_VALUE_MSB",
                               "RH_RF95_REG_15_RX_HEADER_CNT_VALUE_LSB", "RH_RF95_REG_16_RX_PACKET_CNT_VALUE_MSB", "RH_RF95_REG_17_RX_PACKET_CNT_VALUE_LSB","RH_RF95_REG_18_MODEM_STAT",
                               "RH_RF95_REG_19_PKT_SNR_VALUE","RH_RF95_REG_1A_PKT_RSSI_VALUE","RH_RF95_REG_1B_RSSI_VALUE","RH_RF95_REG_1C_HOP_CHANNEL","RH_RF95_REG_1D_MODEM_CONFIG1", "RH_RF95_REG_1E_MODEM_CONFIG2","RH_RF95_REG_1F_SYMB_TIMEOUT_LSB", "RH_RF95_REG_20_PREAMBLE_MSB","RH_RF95_REG_21_PREAMBLE_LSB", "RH_RF95_REG_22_PAYLOAD_LENGTH", "RH_RF95_REG_23_MAX_PAYLOAD_LENGTH" ,"RH_RF95_REG_24_HOP_PERIOD", "RH_RF95_REG_25_FIFO_RX_BYTE_ADDR","RH_RF95_REG_26_MODEM_CONFIG3"};
@@ -142,7 +151,6 @@ void Labb_RFM95:: spiBurstRead(uint8_t * payload , uint8_t size)
     for(int i = 0; i < receivedbytes; i++)
     {
         payload[i] = readRegister(RH_RF95_REG_00_FIFO);
-        //_buf[i] = readRegister(REG_FIFO);
     }
 }
 
@@ -165,7 +173,7 @@ void Labb_RFM95::handleInterrupt() {
         uint8_t fiFo_Addr = readRegister(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR);
 
         writeRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR, fiFo_Addr);
-        printf("\n FiFo Addr Ptr: %x\n", readRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR));
+        //printf("\n FiFo Addr Ptr: %x\n", readRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR));
 
         spiBurstRead(_buf, len);
         _bufLen = len;
@@ -241,7 +249,7 @@ void Labb_RFM95::defaultLoRaSetup()
 
     // Set Continous Sleep Mode
     writeRegister(RH_RF95_REG_01_OP_MODE, RH_RF95_LONG_RANGE_MODE);
-    printf("Set in LONG_RANGE_MODE. REG_OPMODE value: %x \n", readRegister(RH_RF95_REG_01_OP_MODE));
+    printf("Set in LONG_RANGE_MODE. RH_RF95_REG_01_OP_MODE value: %x \n", readRegister(RH_RF95_REG_01_OP_MODE));
 
     //set Frequency to 868.1 MHz by default
     printf("Set frequency to: %d Hz\n", _freq);
@@ -499,12 +507,19 @@ uint8_t Labb_RFM95::getBufLen() {
     return _bufLen;
 }
 
-uint8_t *Labb_RFM95::shiftBuf(uint8_t *arr,const int bufLen, int offset) {
+uint8_t *Labb_RFM95::shiftBuf(uint8_t *arr,const int bufLen) {
 
-    static uint8_t shiftedBuf[RH_RF95_MAX_PAYLOAD_LEN];
+    //static uint8_t shiftedBuf[RH_RF95_MAX_PAYLOAD_LEN];
 
-    for(int i=2; i < bufLen;i++){
-        shiftedBuf[i] = arr[i];
+    static uint8_t shiftedBuf[(RX_ENCRYPTED_BUFFER + 1)];
+
+    int endData = bufLen;
+
+    int j = 0;
+    for (int i = 4; i < endData; i++) {
+
+        shiftedBuf[j] = arr[i];
+        ++j;
     }
 
     return shiftedBuf;
@@ -537,7 +552,6 @@ void Labb_RFM95::mainLoRaHandler() {
                 printf("Received Number of Bytes: 0x%x dec:%d \n", readRegister(RH_RF95_REG_13_RX_NB_BYTES),readRegister(RH_RF95_REG_13_RX_NB_BYTES));
                 printf("FiFo Current Rx Addr: %x\n", readRegister(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR));
                 printf("FiFo Addr Ptr: %x\n", readRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR));
-
             }
         }
 
@@ -549,21 +563,26 @@ void Labb_RFM95::mainLoRaHandler() {
         }
 
         /// cut of the 2Byte sinnlos am anfang & 4bytes sinnlos am ende
-        _encrypDataArrptr = shiftBuf(_buf,(int) _bufLen);
+        _payloadDataArrptr = shiftBuf(_buf,(int) _bufLen);
 
         if(_debug){
             ///print out the received bytes / byteBuf
-            print_value ((char *) "encrypDataBuffer: ", _encrypDataArrptr, RX_ENCRYPTED_BUFFER);
+            print_value ((char *) "encrypDataBuffer: ", _payloadDataArrptr, RX_ENCRYPTED_BUFFER);
         }
-
-        ///decrypt the received Bytes
-        _decryDataArrPtr = decrypData(_encrypDataArrptr);
 
         //print buffer
         std::cout <<"Buffer: "<< std::endl;
 
-        //charArrPtr = labb_rfm95.convertByteBufToCharBuf(byteBuffer, bufLen);
-        _charArrPtr = convertByteBufToCharBuf(_decryDataArrPtr, (int) _bufLen);
+        if(_palyoadEncryp){
+            ///decrypt the received Bytes
+            _decryDataArrPtr = decrypData(_payloadDataArrptr);
+            /// convert the payload into chars
+            _charArrPtr = convertByteBufToCharBuf(_decryDataArrPtr, (int) _bufLen);
+
+        } else{
+            /// convert the unencrypted payload into chars
+            _charArrPtr = convertByteBufToCharBuf(_payloadDataArrptr, _bufLen);
+        }
         //labb_rfm95.printCharBuffer(charArrPtr, bufLen);
         printCharBuffer(_charArrPtr, (int) _bufLen);
 
@@ -593,7 +612,7 @@ uint8_t *Labb_RFM95::decrypData(uint8_t *cipher) {
     uint8_t succ ;
 
     /// Set key
-    succ = set_key (key, bits) ;
+    succ = set_key(key, bits) ;
     if (succ != SUCCESS)
         std::cout <<"Failure set_key" << std::endl ;
 

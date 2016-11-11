@@ -1,21 +1,7 @@
 #include <iostream>
-#include <stdio.h>
-#include <cstdlib>
-#include <errno.h>
-#include <sys/types.h>
-
-#include <string.h>
-#include <string>
-#include <cstring>
-#include <stdint.h>
-#include <sys/ioctl.h>
-
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 
-#include "AES.h"
-
-#include "RFM95registers.h"
 #include "Labb_RFM95.h"
 
 

@@ -1,5 +1,5 @@
 CC = g++
-OBJS = main.cpp RFM95registers.h Labb_RFM95.cpp AES.cpp
+OBJS = main.cpp Labb_RFM95.cpp AES.cpp
 CFLAGS  = -g -Wall -std=gnu++11
 LIBS    = -g -lwiringPi
 
