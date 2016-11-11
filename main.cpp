@@ -22,7 +22,7 @@
 using namespace std;
 /*
 
-// create AES instance
+//  create AES instance
 AES aes;
 /*
 
