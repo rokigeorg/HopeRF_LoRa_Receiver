@@ -20,6 +20,7 @@
 
 
 using namespace std;
+/*
 
 // create AES instance
 AES aes;
@@ -82,6 +83,7 @@ uint8_t * decrypData(uint8_t cipher[], int sizeOfPayload)
 
     return cipher;
 }
+*/
 
 int main(int argc, char* argv[]) {
     ///create instance of the Labb_RFM95 class
@@ -98,20 +100,27 @@ int main(int argc, char* argv[]) {
     cout << "RFM95 is setup in LoRa continues receive mode!" << endl;
     cout <<"******************"<< endl;
     labb_rfm95.printAllRegisters();
+/*
 
     uint8_t * decryDataArrPtr;
     char * charArrPtr;
     uint8_t byteBuffer[RH_RF95_MAX_PAYLOAD_LEN];
+<<<<<<< Updated upstream
+=======
+    uint8_t * encrypDataArrptr;
+*/
+>>>>>>> Stashed changes
 
-    int bufLen = RH_RF95_MAX_PAYLOAD_LEN;
 
     while(1){
 
+        labb_rfm95.mainLoRaHandler();
         //busy waiting, when Pin 0 goes HIGH it contiuous
         //while(digitalRead(dio0));
         //check if interrupt flag has been set
         //RFM95 Modul sets DIO0 pin (check pinlayout on the breakout board [Adafruit RFM9x -> D]to high when message arrives
 
+/*
         if(digitalRead(7) == true)//labb_rfm95.getIRQpin()
         {
 
@@ -147,7 +156,11 @@ int main(int argc, char* argv[]) {
             ///fill the charBuffer to all 0
             labb_rfm95.clearCharBuffer(charArrPtr);
         }
+<<<<<<< Updated upstream
 
+=======
+        */
+>>>>>>> Stashed changes
     }
 
     return 0;

@@ -20,7 +20,7 @@ size_t SizeOfArray( const T(&)[ N ] )
     return N;
 }
 
-Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin) {
+Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin):AES() {
     std::cout <<"Build instance of the Labb_RFM95.\n";
 
     wiringPiSetup();
@@ -31,6 +31,7 @@ Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin) {
     //int fd =
     wiringPiSPISetup(CHANNEL, 500000);
 
+
     _cs_pin =cs_pin;
     _irq_pin =irq_pin;
     _RST_pin= RST_pin;
@@ -38,7 +39,10 @@ Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin) {
     _freq = 868100000;      /////868.1 MHz
     _sf = 7;                ///SF 6 64 chips/symbol; SF 7 128 chips/symbol (default); SF 8 256 chips/symbol; SF 9 512 chips/symbol; SF 10 1024 chips/symbol; SF 11 2048 chips/symbol; SF 12 4096 chips/symbol
     _bw = 0x07;             /// default Bandwidth 125.0 kHZ
+    _debug = true;
 }
+
+
 
 Labb_RFM95::~Labb_RFM95() {
 }
@@ -50,6 +54,14 @@ bool Labb_RFM95::resetRFM95(){
     digitalWrite(_RST_pin, HIGH);
     delay(100);
     return true;
+}
+
+bool Labb_RFM95::is_debug() const {
+    return _debug;
+}
+
+void Labb_RFM95::set_debug(bool _debug) {
+    Labb_RFM95::_debug = _debug;
 }
 
 void Labb_RFM95::selectreceiver()
@@ -498,4 +510,100 @@ uint8_t *Labb_RFM95::shiftBuf(uint8_t *arr,const int bufLen, int offset) {
     return shiftedBuf;
 }
 
+<<<<<<< Updated upstream
+=======
+void Labb_RFM95::printOutByteBuf() {
+
+    std::cout << "private Byte Buffer: ";
+
+    for (int i = 0 ; i < RH_RF95_MAX_PAYLOAD_LEN ; i++)
+    {
+        printf ("%x",_buf[i]) ;
+    }
+    printf ("\n") ;
+}
+
+void Labb_RFM95::mainLoRaHandler() {
+
+    if(digitalRead(_irq_pin) == true) /// check if interrupt has happend
+    {
+        if(_debug){
+            if(readRegister(RH_RF95_REG_12_IRQ_FLAGS) == RH_RF95_PACKET_RECEPTION_COMPLETE){
+                printf("\n");
+                printf("************************************\n");
+                printf("Mode: %x\n", readRegister(RH_RF95_REG_01_OP_MODE) );
+                printf("Interrupt Register: %x\n", readRegister(RH_RF95_REG_12_IRQ_FLAGS));
+                printf("\n");
+                printf("Byte Addr of the last writen Rx Byte: %x\n", readRegister(RH_RF95_REG_25_FIFO_RX_BYTE_ADDR));
+                printf("Received Number of Bytes: 0x%x dec:%d \n", readRegister(RH_RF95_REG_13_RX_NB_BYTES),readRegister(RH_RF95_REG_13_RX_NB_BYTES));
+                printf("FiFo Current Rx Addr: %x\n", readRegister(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR));
+                printf("FiFo Addr Ptr: %x\n", readRegister(RH_RF95_REG_0D_FIFO_ADDR_PTR));
+
+            }
+        }
+
+        handleInterrupt();
+
+        if(_debug){
+            ///print out the received bytes / byteBuf
+            print_value ((char *) "Header + Payload as Byte Buffer: ", _buf, (int) _bufLen);
+        }
+
+        /// cut of the 2Byte sinnlos am anfang & 4bytes sinnlos am ende
+        _encrypDataArrptr = shiftBuf(_buf,(int) _bufLen);
+
+        if(_debug){
+            ///print out the received bytes / byteBuf
+            print_value ((char *) "encrypDataBuffer: ", _encrypDataArrptr, RX_ENCRYPTED_BUFFER);
+        }
+
+        ///decrypt the received Bytes
+        _decryDataArrPtr = decrypData(_encrypDataArrptr);
+
+        //print buffer
+        std::cout <<"Buffer: "<< std::endl;
+
+        //charArrPtr = labb_rfm95.convertByteBufToCharBuf(byteBuffer, bufLen);
+        _charArrPtr = convertByteBufToCharBuf(_decryDataArrPtr, (int) _bufLen);
+        //labb_rfm95.printCharBuffer(charArrPtr, bufLen);
+        printCharBuffer(_charArrPtr, (int) _bufLen);
+
+        ///fill the charBuffer to all 0
+        clearCharBuffer(_charArrPtr);
+
+        memset(_buf, 0, sizeof _buf);
+    }
+
+}
+
+void Labb_RFM95::print_value(char *str, uint8_t *arr, int bytes) {
+    printf ("%s ", str) ;
+
+    for (int i = 0 ; i < bytes ; i++)
+    {
+        printf ("%x",arr[i]) ;
+    }
+    printf ("\n") ;
+}
+
+uint8_t *Labb_RFM95::decrypData(uint8_t *cipher) {
+    uint8_t key[] = "0123456789987654";
+    static uint8_t plain [N_BLOCK] ;
+    uint8_t bits = 128;
+
+    uint8_t succ ;
+
+    /// Set key
+    succ = set_key (key, bits) ;
+    if (succ != SUCCESS)
+        std::cout <<"Failure set_key" << std::endl ;
+
+    succ = decrypt (cipher, plain) ;
+    if (succ != SUCCESS)
+        std::cout <<"Failure encrypt" << std::endl ;
+
+    return plain;
+}
+
+>>>>>>> Stashed changes
 

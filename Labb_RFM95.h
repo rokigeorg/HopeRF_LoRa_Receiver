@@ -11,7 +11,11 @@
 
 
 #include <cstdint>
+<<<<<<< Updated upstream
 #include "RFM95registers.h"
+=======
+#include "AES.h"
+>>>>>>> Stashed changes
 
 #define CHANNEL 0
 
@@ -29,7 +33,7 @@
 #define CR_4_8 8
 
 
-class Labb_RFM95 {
+class Labb_RFM95: public AES {
 
 public:
 
@@ -270,7 +274,63 @@ public:
      */
     uint8_t getBufLen();
 
+<<<<<<< Updated upstream
     uint8_t * shiftBuf(uint8_t *arr,const int bufLen, int offset);
+=======
+    uint8_t * shiftBuf(uint8_t *arr,const int bufLen);
+
+    /**
+     * prints all Bytes in the rx Buffer
+     */
+
+    void printOutByteBuf();
+>>>>>>> Stashed changes
+
+    /**
+     *  Getter method for _debug
+     * @return _debug status
+     */
+    bool is_debug() const;
+    /**
+     * Setter method for _debug
+     * @param _debug
+     */
+    void set_debug(bool _debug);
+
+    /**
+     * User-friendly main function
+     * This function has the routine implemted all steps from the detected interrupt to convertion of the binear data into char Data.
+     * The routine is the following.
+     * 1. check if LoRa package receive by flags are set and read the FiFo Buffer -> handleInterrupt()
+     * 2. divide the Header from the Payload
+     * 3. decrypted the Payload
+     * 4. convert the Payload into characters
+     * 5. print the Payload in characters
+     * 6. clear buffers
+     *
+     * This used to be my main function while developing the Labb_RFM95 class.
+     * By reading this function get know the class and how it works and can be used.
+     *
+     */
+
+    void mainLoRaHandler();
+
+    /**
+     * This function is a debug helper to print the different buffers
+     * @param str -> A string to identify the printed buffer
+     * @param arr -> buffer which should be printed
+     * @param bytes -> length of the arr
+     */
+    void print_value (char * str, uint8_t * arr, int bytes);
+
+
+    /**
+     * This function decryptes the payload.
+     * @param cipher
+     * @return
+     */
+    uint8_t * decrypData(uint8_t cipher[]);
+
 
     typedef enum {
         RHModeInitialising = 0, ///< Transport is initialising. Initial default value until init() is called..
@@ -329,7 +389,14 @@ private:
     volatile uint16_t _rxGood;
     /// Count of the number of bad messages (correct checksum etc) received
     volatile uint16_t _txGood;
-
+    /// Pointer to array where the decrypted payload of the LoRa Phy Payload is stored
+    uint8_t * _decryDataArrPtr;
+    /// Pointer to array where the converted Data is stored
+    char * _charArrPtr;
+    /// Pointer to array where the encypted payload of the LoRa Phy Payload is stored
+    uint8_t * _encrypDataArrptr;
+    /// Debugging Mode -> print the registers
+    bool _debug;
 
     /**
      * This funtion is a helper function for the  checkCommandLineArgLoraSetup().
