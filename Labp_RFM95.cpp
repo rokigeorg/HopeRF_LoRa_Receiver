@@ -7,7 +7,7 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 
-#include "Labb_RFM95.h"
+#include "Labp_RFM95.h"
 
 #define RF95_FREQ 868100000 //868.1 MHz
 #define RF95_SF 7
@@ -20,8 +20,8 @@ size_t SizeOfArray( const T(&)[ N ] )
     return N;
 }
 
-Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin):AES() {
-    std::cout <<"Build instance of the Labb_RFM95.\n";
+Labp_RFM95::Labp_RFM95(int cs_pin, int irq_pin, int RST_pin):AES() {
+    std::cout <<"Build instance of the Labp_RFM95.\n";
 
     wiringPiSetup();
     pinMode(cs_pin, OUTPUT);
@@ -41,22 +41,24 @@ Labb_RFM95::Labb_RFM95(int cs_pin, int irq_pin, int RST_pin):AES() {
     _bw = 0x07;             /// default Bandwidth 125.0 kHZ
     _debug = true;
     _palyoadEncryp = true;  /// if payload is encrypted or not
+    _rxBad = 0;
+    _rxGood =0;
 
 }
 
-bool Labb_RFM95::is_palyoadEncryp() const {
+bool Labp_RFM95::is_palyoadEncryp() const {
     return _palyoadEncryp;
 }
 
-void Labb_RFM95::set_palyoadEncryp(bool _palyoadEncryp) {
-    Labb_RFM95::_palyoadEncryp = _palyoadEncryp;
+void Labp_RFM95::set_palyoadEncryp(bool _palyoadEncryp) {
+    Labp_RFM95::_palyoadEncryp = _palyoadEncryp;
 }
 
 
-Labb_RFM95::~Labb_RFM95() {
+Labp_RFM95::~Labp_RFM95() {
 }
 
-bool Labb_RFM95::resetRFM95(){
+bool Labp_RFM95::resetRFM95(){
 
     digitalWrite(_RST_pin, LOW);
     delay(100);
@@ -65,26 +67,26 @@ bool Labb_RFM95::resetRFM95(){
     return true;
 }
 
-bool Labb_RFM95::is_debug() const {
+bool Labp_RFM95::is_debug() const {
     return _debug;
 }
 
-void Labb_RFM95::set_debug(bool _debug) {
-    Labb_RFM95::_debug = _debug;
+void Labp_RFM95::set_debug(bool _debug) {
+    Labp_RFM95::_debug = _debug;
 }
 
-void Labb_RFM95::selectreceiver()
+void Labp_RFM95::selectreceiver()
 {
 
     digitalWrite(_cs_pin, LOW);
 }
 
-void Labb_RFM95::unselectreceiver()
+void Labp_RFM95::unselectreceiver()
 {
     digitalWrite(_cs_pin, HIGH);
 }
 
-uint8_t Labb_RFM95::readRegister(uint8_t addr)
+uint8_t Labp_RFM95::readRegister(uint8_t addr)
 {
     unsigned char spibuf[2];
 
@@ -97,7 +99,7 @@ uint8_t Labb_RFM95::readRegister(uint8_t addr)
     return spibuf[1];
 }
 
-void Labb_RFM95::writeRegister(uint8_t addr, uint8_t value)
+void Labp_RFM95::writeRegister(uint8_t addr, uint8_t value)
 {
     unsigned char spibuf[2];
 
@@ -110,7 +112,7 @@ void Labb_RFM95::writeRegister(uint8_t addr, uint8_t value)
 }
 
 
-void Labb_RFM95::printAllRegisters(){
+void Labp_RFM95::printAllRegisters(){
     //registers I want to read
     uint8_t registers[] = {RH_RF95_REG_00_FIFO, RH_RF95_REG_01_OP_MODE, RH_RF95_REG_02_RESERVED, RH_RF95_REG_03_RESERVED, RH_RF95_REG_04_RESERVED, RH_RF95_REG_05_RESERVED, RH_RF95_REG_06_FRF_MSB, RH_RF95_REG_07_FRF_MID, RH_RF95_REG_08_FRF_LSB , RH_RF95_REG_09_PA_CONFIG, RH_RF95_REG_0A_PA_RAMP, RH_RF95_REG_0B_OCP , RH_RF95_REG_0C_LNA ,
                            RH_RF95_REG_0D_FIFO_ADDR_PTR, RH_RF95_REG_0E_FIFO_TX_BASE_ADDR,RH_RF95_REG_0F_FIFO_RX_BASE_ADDR , RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR, RH_RF95_REG_11_IRQ_FLAGS_MASK,RH_RF95_REG_12_IRQ_FLAGS, RH_RF95_REG_13_RX_NB_BYTES, RH_RF95_REG_14_RX_HEADER_CNT_VALUE_MSB,
@@ -134,7 +136,7 @@ void Labb_RFM95::printAllRegisters(){
     }
 }
 
-void Labb_RFM95::setModeIdle() {
+void Labp_RFM95::setModeIdle() {
     if (_mode != RHModeIdle)
     {
         writeRegister(RH_RF95_REG_01_OP_MODE, RH_RF95_MODE_STDBY);
@@ -143,7 +145,7 @@ void Labb_RFM95::setModeIdle() {
 }
 
 
-void Labb_RFM95:: spiBurstRead(uint8_t * payload , uint8_t size)
+void Labp_RFM95:: spiBurstRead(uint8_t * payload , uint8_t size)
 {
     //uint8_t receivedCount = readRegister(RH_RF95_REG_13_RX_NB_BYTES);     //read register which tells the Number of received bytes
     uint8_t receivedbytes = size;
@@ -154,7 +156,7 @@ void Labb_RFM95:: spiBurstRead(uint8_t * payload , uint8_t size)
     }
 }
 
-void Labb_RFM95::handleInterrupt() {
+void Labp_RFM95::handleInterrupt() {
     // Read the interrupt register
     uint8_t irq_flags = readRegister(RH_RF95_REG_12_IRQ_FLAGS);
     if (_mode == RHModeRx && irq_flags & (RH_RF95_RX_TIMEOUT | RH_RF95_PAYLOAD_CRC_ERROR))
@@ -179,6 +181,7 @@ void Labb_RFM95::handleInterrupt() {
         _bufLen = len;
         writeRegister(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
 
+        _rxGood++;
         // Remember the RSSI of this packet
         // this is according to the doc, but is it really correct?
         // weakest receiveable signals are reported RSSI at about -66
@@ -186,7 +189,7 @@ void Labb_RFM95::handleInterrupt() {
     }
 }
 
-bool Labb_RFM95::setFrequency(uint32_t freq)
+bool Labp_RFM95::setFrequency(uint32_t freq)
 {
     uint64_t frf = ((uint64_t)freq << 19) / 32000000;
     writeRegister(RH_RF95_REG_06_FRF_MSB, (uint8_t)(frf>>16) );
@@ -195,33 +198,33 @@ bool Labb_RFM95::setFrequency(uint32_t freq)
     return true;
 }
 
-void Labb_RFM95::setModemRegisters(){
+void Labp_RFM95::setModemRegisters(){
     writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, 0x72);
     writeRegister(RH_RF95_REG_1E_MODEM_CONFIG2, (_sf<<4) | 0x04);
     writeRegister(RH_RF95_REG_26_MODEM_CONFIG3, 0x04);  ///[7-4 bit: unused][3 bit: 0->static node / 1->mobile node] [2 bit: 0->LNA gain set by register LnaGain / 1->LNA gain set by the internal AGC loop][1-0 bit: reserved]
 }
 
-void Labb_RFM95::setSymbTimeout(uint8_t timeOutPeriod){
+void Labp_RFM95::setSymbTimeout(uint8_t timeOutPeriod){
     writeRegister(RH_RF95_REG_1F_SYMB_TIMEOUT_LSB,   timeOutPeriod);
 }
 
-void Labb_RFM95::setMaxPayloadLength(uint8_t mPayloadLength){
+void Labp_RFM95::setMaxPayloadLength(uint8_t mPayloadLength){
     writeRegister(RH_RF95_REG_23_MAX_PAYLOAD_LENGTH,   mPayloadLength);
 }
 
-void Labb_RFM95::setPayloadLength(uint8_t payll) {
+void Labp_RFM95::setPayloadLength(uint8_t payll) {
     writeRegister(RH_RF95_REG_22_PAYLOAD_LENGTH,  payll);
 }
 
-void Labb_RFM95::setFrequencyHoppingPeriod(uint8_t fhhp){
+void Labp_RFM95::setFrequencyHoppingPeriod(uint8_t fhhp){
     writeRegister(RH_RF95_REG_24_HOP_PERIOD,fhhp);
 }
 
-void Labb_RFM95::setLnaGain(uint8_t lnaMaxGain){
+void Labp_RFM95::setLnaGain(uint8_t lnaMaxGain){
     writeRegister(RH_RF95_REG_0C_LNA, LNA_MAX_GAIN);  // max lna gain
 }
 
-void Labb_RFM95::clearCharBuffer(char * arr){
+void Labp_RFM95::clearCharBuffer(char * arr){
     int i = 0;
     while (arr[i]== '\n'){
         arr[i]=0;
@@ -230,7 +233,7 @@ void Labb_RFM95::clearCharBuffer(char * arr){
 }
 
 
-void Labb_RFM95::defaultLoRaSetup()
+void Labp_RFM95::defaultLoRaSetup()
 {
     //wait until RF95 is resetted
     while(!resetRFM95());
@@ -290,24 +293,24 @@ void Labb_RFM95::defaultLoRaSetup()
     writeRegister(RH_RF95_REG_01_OP_MODE, SX1276_MODE_Continuos);
 }
 
-int Labb_RFM95::getIRQpin() {
+int Labp_RFM95::getIRQpin() {
     return _irq_pin;
 }
 
-int Labb_RFM95::getRSTpin() {
+int Labp_RFM95::getRSTpin() {
     return _RST_pin;
 }
 
-int Labb_RFM95::getCSpin() {
+int Labp_RFM95::getCSpin() {
     return _cs_pin;
 }
 
-void Labb_RFM95::expandRFM95DataBuffToFullSize() {
+void Labp_RFM95::expandRFM95DataBuffToFullSize() {
     writeRegister(RH_RF95_REG_0E_FIFO_TX_BASE_ADDR,0x00);
     writeRegister(RH_RF95_REG_0F_FIFO_RX_BASE_ADDR,0x00);
 }
 
-void Labb_RFM95::rxReceivedLoRaPackage(uint8_t *arr) {
+void Labp_RFM95::rxReceivedLoRaPackage(uint8_t *arr) {
 
     /// The actual location to be read from, or written to, over the SPI interface is defined by the address pointer FifoAddrPtr.
     /// Before any read or write operation it is hence necessary to initialise this pointer to the corresponding base value.
@@ -330,7 +333,7 @@ void Labb_RFM95::rxReceivedLoRaPackage(uint8_t *arr) {
 
 }
 
-void Labb_RFM95::loraSetup(uint32_t fq, uint8_t sf, uint8_t cr) {
+void Labp_RFM95::loraSetup(uint32_t fq, uint8_t sf, uint8_t cr) {
     _freq = fq;
     _sf = sf;
 
@@ -404,12 +407,12 @@ void Labb_RFM95::loraSetup(uint32_t fq, uint8_t sf, uint8_t cr) {
 }
 
 
-void Labb_RFM95::setSpredingFactor(uint8_t sf) {
+void Labp_RFM95::setSpredingFactor(uint8_t sf) {
     _sf = sf;
     writeRegister(RH_RF95_REG_1E_MODEM_CONFIG2, (_sf<<4) | 0x04);
 }
 
-void Labb_RFM95::setCodingRate(uint8_t cr) {
+void Labp_RFM95::setCodingRate(uint8_t cr) {
     _cr = cr;
 
     if(cr == CR_4_5) {
@@ -429,13 +432,13 @@ void Labb_RFM95::setCodingRate(uint8_t cr) {
     }
 }
 
-void Labb_RFM95::setModemConfigReg3() {
+void Labp_RFM95::setModemConfigReg3() {
 
     writeRegister(RH_RF95_REG_26_MODEM_CONFIG3, 0x04);  ///[7-4 bit: unused][3 bit: 0->static node / 1->mobile node] [2 bit: 0->LNA gain set by register LnaGain / 1->LNA gain set by the internal AGC loop][1-0 bit: reserved]
 
 }
 
-bool Labb_RFM95::checkCommandLineArgLoraSetup(int argcount, char **argvector) {
+bool Labp_RFM95::checkCommandLineArgLoraSetup(int argcount, char **argvector) {
 
     if (argcount < 3) {
         explainUsage();
@@ -474,7 +477,7 @@ bool Labb_RFM95::checkCommandLineArgLoraSetup(int argcount, char **argvector) {
     return true;
 }
 
-void Labb_RFM95::explainUsage() {
+void Labp_RFM95::explainUsage() {
     std::cerr << "Usage: <option(s)> SOURCES"
               << "Options:\n"
               << "\t-h\t\tShow this help message\n"
@@ -484,7 +487,7 @@ void Labb_RFM95::explainUsage() {
 
 }
 
-char *Labb_RFM95::convertByteBufToCharBuf(uint8_t *arr, int bufLen) {
+char *Labp_RFM95::convertByteBufToCharBuf(uint8_t *arr, int bufLen) {
 
     static char charBuffer[RH_RF95_MAX_PAYLOAD_LEN];
 
@@ -495,7 +498,7 @@ char *Labb_RFM95::convertByteBufToCharBuf(uint8_t *arr, int bufLen) {
     return charBuffer;
 }
 
-void Labb_RFM95::printCharBuffer(const char *arr, int bufLen) {
+void Labp_RFM95::printCharBuffer(const char *arr, int bufLen) {
 
     int i=0;
     for(i=0; i < bufLen;i++){
@@ -503,11 +506,11 @@ void Labb_RFM95::printCharBuffer(const char *arr, int bufLen) {
     }
 }
 
-uint8_t Labb_RFM95::getBufLen() {
+uint8_t Labp_RFM95::getBufLen() {
     return _bufLen;
 }
 
-uint8_t *Labb_RFM95::shiftBuf(uint8_t *arr,const int bufLen) {
+uint8_t *Labp_RFM95::shiftBuf(uint8_t *arr,const int bufLen) {
 
     //static uint8_t shiftedBuf[RH_RF95_MAX_PAYLOAD_LEN];
 
@@ -526,7 +529,7 @@ uint8_t *Labb_RFM95::shiftBuf(uint8_t *arr,const int bufLen) {
 }
 
 
-void Labb_RFM95::printOutByteBuf() {
+void Labp_RFM95::printOutByteBuf() {
 
     std::cout << "private Byte Buffer: ";
 
@@ -537,7 +540,7 @@ void Labb_RFM95::printOutByteBuf() {
     printf ("\n") ;
 }
 
-void Labb_RFM95::mainLoRaHandler() {
+void Labp_RFM95::mainLoRaHandler() {
 
     if(digitalRead(_irq_pin) == true) /// check if interrupt has happend
     {
@@ -594,7 +597,7 @@ void Labb_RFM95::mainLoRaHandler() {
 
 }
 
-void Labb_RFM95::print_value(char *str, uint8_t *arr, int bytes) {
+void Labp_RFM95::print_value(char *str, uint8_t *arr, int bytes) {
     printf ("%s ", str) ;
 
     for (int i = 0 ; i < bytes ; i++)
@@ -604,7 +607,7 @@ void Labb_RFM95::print_value(char *str, uint8_t *arr, int bytes) {
     printf ("\n") ;
 }
 
-uint8_t *Labb_RFM95::decrypData(uint8_t *cipher) {
+uint8_t *Labp_RFM95::decrypData(uint8_t *cipher) {
     uint8_t key[] = "0123456789987654";
     static uint8_t plain [N_BLOCK] ;
     uint8_t bits = 128;

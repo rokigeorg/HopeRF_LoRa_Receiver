@@ -2,7 +2,7 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 
-#include "Labb_RFM95.h"
+#include "Labp_RFM95.h"
 
 
 using namespace std;
@@ -10,7 +10,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
     ///create instance of the Labb_RFM95 class
-    Labb_RFM95 labb_rfm95(6,7,0);
+    Labp_RFM95 labb_rfm95(6,7,0);
 
     ///wait until RF95 is resetted
     while(!labb_rfm95.resetRFM95());

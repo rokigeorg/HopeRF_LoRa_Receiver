@@ -216,7 +216,7 @@
 //###########################################
 
 
-class Labb_RFM95: public AES {
+class Labp_RFM95: public AES {
 
 public:
 
@@ -226,13 +226,13 @@ public:
      * irq_pin -> Interrupt pin on the RPI, On the Adafruit RFM9x is this pin labeled dio0
      * RST_pin -> Reset pin on the RPI
     */
-    Labb_RFM95(int cs_pin = 6, int irq_pin = 7, int RST_pin = 0);
+    Labp_RFM95(int cs_pin = 6, int irq_pin = 7, int RST_pin = 0);
 
     /**
      * Destructor
      */
 
-    ~Labb_RFM95();
+    ~Labp_RFM95();
 
     /**
     * This Function prints out all the registers of the RFM95
