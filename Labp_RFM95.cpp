@@ -43,6 +43,10 @@ Labp_RFM95::Labp_RFM95(int cs_pin, int irq_pin, int RST_pin):AES() {
     _palyoadEncryp = true;  /// if payload is encrypted or not
     _rxBad = 0;
     _rxGood =0;
+    _FileExsistes = true;
+    /// open file to write to the end of the file every time
+    _loraFile.open("Measurement_1.txt", std::ios::out| std::ios::ate);
+
 
 }
 
@@ -56,6 +60,7 @@ void Labp_RFM95::set_palyoadEncryp(bool _palyoadEncryp) {
 
 
 Labp_RFM95::~Labp_RFM95() {
+    _loraFile.close();
 }
 
 bool Labp_RFM95::resetRFM95(){
@@ -588,6 +593,7 @@ void Labp_RFM95::mainLoRaHandler() {
         }
         //labb_rfm95.printCharBuffer(charArrPtr, bufLen);
         printCharBuffer(_charArrPtr, (int) _bufLen);
+        writeCharBufToFile(_charArrPtr, (int) _bufLen);
 
         ///fill the charBuffer to all 0
         clearCharBuffer(_charArrPtr);
@@ -624,4 +630,25 @@ uint8_t *Labp_RFM95::decrypData(uint8_t *cipher) {
         std::cout <<"Failure encrypt" << std::endl ;
 
     return plain;
+}
+
+void Labp_RFM95::writeCharBufToFile(const char *arr, int bufLen) {
+
+
+    if(_loraFile.is_open()){
+
+        /// errror Handling
+        if(_loraFile.fail()) {
+            std::cerr << "Error Opening File!";
+            exit(1);
+        }
+        /// write to file
+        for(int i=0; i < bufLen;i++){
+            _loraFile << arr[i];
+        }
+        _loraFile << std::endl;
+    } else{
+        std::cout <<"File is not open!!" << std::endl;
+    }
+
 }

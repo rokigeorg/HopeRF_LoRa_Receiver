@@ -10,6 +10,9 @@
 #define HOPERF_LORA_RECEIVER_LABB_RFM95_H
 
 #include <cstdint>
+#include <fstream>
+#include <ios>
+
 
 #include "AES.h"
 
@@ -449,6 +452,13 @@ public:
      * @param bufLen
      */
     void printCharBuffer(const char *arr, int bufLen);
+    /**
+     * This function writes the Buffer to a file
+     * @param arr
+     * @param bufLen
+     */
+    void writeCharBufToFile(const char *arr, int bufLen);
+
 
 
     /**
@@ -534,6 +544,10 @@ public:
         SF11,
         SF12
     } SFMode;
+
+    /// File obj to write all lora pakets into
+    std::ofstream _loraFile;
+
 private:
     /// Chipselect Pin
     volatile int _cs_pin;
@@ -584,6 +598,9 @@ private:
     bool _debug;
     /// If Payload is encrypted or not
     bool _palyoadEncryp;
+    ///File exsitis Flag
+    bool _FileExsistes;
+
 
     /**
      * This funtion is a helper function for the  checkCommandLineArgLoraSetup().
