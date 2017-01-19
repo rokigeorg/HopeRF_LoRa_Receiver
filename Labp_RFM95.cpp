@@ -45,7 +45,7 @@ Labp_RFM95::Labp_RFM95(int cs_pin, int irq_pin, int RST_pin):AES() {
     _rxGood =0;
     _FileExsistes = true;
     /// open file to write to the end of the file every time
-    _loraFile.open("Measurement_1.txt", std::ios::out| std::ios::ate);
+    _loraFile.open("Measurement3_5.txt", std::ios::out| std::ios::ate);
 
 
 }
