@@ -468,19 +468,19 @@ void Labp_RFM95::setCodingRate(uint8_t cr) {
     if(cr == CR_4_5) {
         writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (_bw | 0x02));
         //writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1,  0x72);
-        std::cout << "Coding Rate  is set to " << cr << '\n';
+        std::cout << "Coding Rate  is set to " << _cr << '\n';
     }
     else if(cr == CR_4_6) {
         writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (_bw | 0x04));
-        std::cout << "Coding Rate  is set to " << cr << '\n';
+        std::cout << "Coding Rate  is set to 4/" << _cr << '\n';
     }
     else if(cr == CR_4_7) {
         writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (_bw | 0x06));
-        std::cout << "Coding Rate  is set to " << cr << '\n';
+        std::cout << "Coding Rate  is set to 4/" << _cr << '\n';
     }
     else if(cr == CR_4_8) {
         writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (_bw | 0x08));
-        std::cout << "Coding Rate  is set to " << cr << '\n';
+        std::cout << "Coding Rate  is set to 4/" << _cr << '\n';
     }
     else {
         std::cout << "Coding Rate paramater is not valide. Please enter 5 - 8 for '4/5' - '4/8'" <<std::endl;
