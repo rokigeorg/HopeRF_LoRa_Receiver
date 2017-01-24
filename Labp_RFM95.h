@@ -368,7 +368,7 @@ public:
      */
     void defaultLoRaSetup();
 
-    void loraSetup(uint32_t fq, uint8_t sf, uint8_t cr);
+    void loraSetup(uint32_t fq, uint8_t sf, uint8_t cr , uint16_t phyBw = 125);
 
     /**
      * writes zeros to the char buffer / array
@@ -417,6 +417,15 @@ public:
 
 
     /**
+     * This function sets up the bandwidth
+     * Accepted Bandwidths are 125kHz, 250kHz and 500kHz
+     * @param phyBw
+     */
+
+    void setBandwidth(uint16_t phyBw);
+
+
+    /**
      * This function sets the coding rate
      * @param cr
      */
@@ -458,7 +467,6 @@ public:
      * @param bufLen
      */
     void writeCharBufToFile(const char *arr, int bufLen);
-
 
 
     /**
@@ -564,8 +572,11 @@ private:
     /// Coding rate
     uint8_t _cr;
 
-    ///Bandwith
+    ///Bandwith value which is needed to set the right bits in the register
     uint8_t _bw;
+
+    /// Bandwidth value which is the physical bandwidth
+    uint16_t _phyBw;
 
     /// Index of next interrupt number to use in _deviceForInterrupt
     static uint8_t _interruptCount;

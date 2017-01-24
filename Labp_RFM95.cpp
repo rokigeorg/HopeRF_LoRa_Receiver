@@ -38,9 +38,11 @@ Labp_RFM95::Labp_RFM95(int cs_pin, int irq_pin, int RST_pin):AES() {
     _mode = RHModeIdle;
     _freq = 868100000;      ///// 868.1 MHz
     _sf = 7;                /// SF 6 64 chips/symbol; SF 7 128 chips/symbol (default); SF 8 256 chips/symbol; SF 9 512 chips/symbol; SF 10 1024 chips/symbol; SF 11 2048 chips/symbol; SF 12 4096 chips/symbol
-    _bw = 0x07;             /// default Bandwidth 125.0 kHZ
+    _bw = 0x07;             /// default Bandwidth 125.0 kHZ which needs to be set in the register
+    _phyBw = 125;           /// value of the bandwidth which the radio waves are transmitted in the physical world
+    _cr = 5;
     _debug = true;
-    _palyoadEncryp = true;  /// if payload is encrypted or not
+    _palyoadEncryp = false;  /// if payload is encrypted or not
     _rxBad = 0;
     _rxGood =0;
     _FileExsistes = true;
@@ -338,9 +340,10 @@ void Labp_RFM95::rxReceivedLoRaPackage(uint8_t *arr) {
 
 }
 
-void Labp_RFM95::loraSetup(uint32_t fq, uint8_t sf, uint8_t cr) {
+void Labp_RFM95::loraSetup(uint32_t fq, uint8_t sf, uint8_t cr, uint16_t phyBw ) {
     _freq = fq;
     _sf = sf;
+    _phyBw = phyBw;
 
     //wait until RF95 is resetted
     while(!resetRFM95());
@@ -372,7 +375,11 @@ void Labp_RFM95::loraSetup(uint32_t fq, uint8_t sf, uint8_t cr) {
         fprintf(stderr, "Value of errno: %d\n", errno);
         perror("Error printed by perror after setSpredingFactor");}
 
-    /// set coding rate
+
+    /// check the register value (_bw) for the specified physical Bandwidth (_phyBw)
+    setBandwidth(_phyBw);
+    /// set coding rate and bandwidth
+    /// the default bandwidth is 125kHz and the default CR 4/5
     setCodingRate(cr);
     if(errno != 0){
         fprintf(stderr, "Value of errno: %d\n", errno);
@@ -417,20 +424,63 @@ void Labp_RFM95::setSpredingFactor(uint8_t sf) {
     writeRegister(RH_RF95_REG_1E_MODEM_CONFIG2, (_sf<<4) | 0x04);
 }
 
+void Labp_RFM95::setBandwidth(uint16_t phyBw) {
+
+    if (phyBw == 125 || phyBw == 250 || phyBw == 500) {
+
+        _phyBw = phyBw;
+
+        // set  register value for the bandwidth
+        switch (_phyBw) {
+            case 250: {
+                _bw = 0x80;
+                setCodingRate(_cr);
+                std::cout << "Bandwidth is set to " << phyBw << '\n';
+                break;
+            }
+            case 500: {
+                _bw = 0x90;
+                setCodingRate(_cr);
+                std::cout << "Bandwidth is set to " << phyBw << '\n';
+                break;
+            }
+
+            default:{   /// 125kHz is the default ;-)
+                _bw = 0x70;
+                setCodingRate(_cr);
+                std::cout << "Default Bandwidth is set to " << phyBw << '\n';
+                break;
+            };
+        }
+    } else {
+        errno = 1;
+        if (errno != 0) {
+            fprintf(stderr, "Value of errno: %d\n", errno);
+            perror("Not a correct physical Bandwidth. Please only use 125, 250 or 500 (kHz). ");
+        }
+    }
+}
+
+
 void Labp_RFM95::setCodingRate(uint8_t cr) {
     _cr = cr;
 
     if(cr == CR_4_5) {
-        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x72));
+        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (_bw | 0x02));
+        //writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1,  0x72);
+        std::cout << "Coding Rate  is set to " << cr << '\n';
     }
     else if(cr == CR_4_6) {
-        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x74));
+        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (_bw | 0x04));
+        std::cout << "Coding Rate  is set to " << cr << '\n';
     }
     else if(cr == CR_4_7) {
-        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x76));
+        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (_bw | 0x06));
+        std::cout << "Coding Rate  is set to " << cr << '\n';
     }
     else if(cr == CR_4_8) {
-        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (0x78));
+        writeRegister(RH_RF95_REG_1D_MODEM_CONFIG1, (_bw | 0x08));
+        std::cout << "Coding Rate  is set to " << cr << '\n';
     }
     else {
         std::cout << "Coding Rate paramater is not valide. Please enter 5 - 8 for '4/5' - '4/8'" <<std::endl;
@@ -445,7 +495,7 @@ void Labp_RFM95::setModemConfigReg3() {
 
 bool Labp_RFM95::checkCommandLineArgLoraSetup(int argcount, char **argvector) {
 
-    if (argcount < 3) {
+    if (argcount < 4) {
         explainUsage();
         return false;
     }
@@ -453,6 +503,7 @@ bool Labp_RFM95::checkCommandLineArgLoraSetup(int argcount, char **argvector) {
     int argVal;
     uint32_t freq;
     uint8_t sf =7 , cr = 5;
+    uint16_t bw = 125;
 
     for (int i = 1; i < argcount; ++i) {
         if (std::string(argvector[i]) == "-f") {
@@ -471,14 +522,18 @@ bool Labp_RFM95::checkCommandLineArgLoraSetup(int argcount, char **argvector) {
                 argVal = atoi(argvector[(i+1)]);
                 cr = (uint8_t) argVal;
             }
-        }
-        else if(std::string(argvector[i]) == "-h"){
+        } else if (std::string(argvector[i]) == "-bw") {
+            if (i + 1 < argcount) {
+                argVal = atoi(argvector[(i + 1)]);
+                bw = (uint16_t) argVal;
+            }
+        } else if (std::string(argvector[i]) == "-h") {
             explainUsage();
         }
     }
 
     ///setup RFM95 Modul into continues receiving mode
-    loraSetup(freq, sf, cr);
+    loraSetup(freq, sf, cr, bw);
     return true;
 }
 
@@ -650,3 +705,5 @@ void Labp_RFM95::writeCharBufToFile(const char *arr, int bufLen) {
         std::cout <<"File is not open!!" << std::endl;
     }
 }
+
+
