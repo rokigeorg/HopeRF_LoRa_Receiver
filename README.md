@@ -1,9 +1,9 @@
 <snippet>
   <content>
-# Encrypted LoRa Communication - Node to Gateway
+# Encrypted LoRa Communication - Gateway
 
-This repository includes code for an Adruino Uno and a Raspberry Pi Model B.
-The Arduino (Node) can send AES encrypted data to the Raspberry Pi (Gateway). The LoRa commincation parameters are adjustable. Default settings are LoRa Frequency 868,1 MHz, Spreading Factor SF7 and Coding Rate 4/5. LoRa Communication is possible encrypted and without encryption. Right now the encrypted LoRa payload is limited to 16 Bytes.
+This repository includes code a Raspberry Pi Model B.
+The Raspberry Pi (Gateway). The LoRa commincation parameters are adjustable. Default settings are LoRa Frequency 868,1 MHz, Spreading Factor SF7 and Coding Rate 4/5. LoRa Communication is possible encrypted and without encryption. Right now the encrypted LoRa payload is limited to 16 Bytes.
 
 ## Usage
 The code should demostrate a way of using the LoRa Radio Technology for sending data encrypted. Also it is a fast introduction to the LoRa Technology. 
@@ -14,9 +14,6 @@ The goal was to develop a Node to Gateway encrypted communiction with the LoRa R
 
 ## Software Dependencies 
 The code requires the following software libraries.
-### for the Node
-* AES library for Arduino - [download and instructions found here](http://spaniakos.github.io/AES/)
-* RadioHead Library [link here](http://www.airspayce.com/mikem/arduino/RadioHead/)
 
 ### for the Gateway
 * enable SPI -> check in  ```$ raspi-config``` on RPi 
@@ -24,19 +21,11 @@ The code requires the following software libraries.
 * start program as root ``$ sudo ./main``
 
 ## Setup and Installation
-### for the Node
-1. Clone this repository to your machine you will program the Arduino ```$ git clone https://github.com/rokigeorg/encrypted-LoRa-Communication.git ``` 
-2. Wire up the Arduino with the first RFM95 LoRa Modul (see section Hardware Wiring)
-3. install AES library in arduino sketch Folder ``/Arduino/ libraries``  [instructions here](http://spaniakos.github.io/AES/)
-4. Download [Download RadioHead v1.59](https://cdn-learn.adafruit.com/assets/assets/000/031/670/original/RadioHead-1.59.zip?1460574831) and install the library in arduino sketch Folder ``/Arduino/ libraries`` . Reboot IDE.
-5. Back in our repository folder open ``$ cd arduino_Node && ls``. There are two example sketches. ```ex1_send_NOT_encryp_LoRaPackage``` -> send NOT encrypted LoRa Packages , ```ex2_send_encryp_LoRaPackage``` -> send encrypted LoRa Packages (16 Bytes Payload size only)
-6. open sketch ``cd ex2_send_encryp_LoRaPackage`` in the adruino IDE and upload it to the Uno  
-7. Node send LoRa packages now
 
 ### for the Gateway
 1. Clone this repository to your Raspberry Pi ```git clone https://github.com/rokigeorg/encrypted-LoRa-Communication.git ``` 
 2. Wire up the Raspberry Pi with the second RFM95 LoRa Modul (see section Hardware Wiring)
-3. On the command line in our repository folder  ``$ cd RaspberryPi_Gateway``
+3. On the command line in our repository folder  ``$ cd HopeRF_LoRa_Receiver``
 4. Compile the code via the Makefile ``$ make``
 5. Run the LoRa Radio Receiver ``$ sudo ./main -f 868100000 -sf 7 -cr 5 -bw 125`` 
 
@@ -58,6 +47,8 @@ Please note the adjustable arguments
   -bw 125
   ``` 
 specifizes the bandwidth 125 kHz
+
+All parameters can be adjusted. The given values are only the default values.
 
 ## Hardware 
 The code functions with the following hardware components.
