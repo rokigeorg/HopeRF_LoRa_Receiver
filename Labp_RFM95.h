@@ -229,7 +229,7 @@ public:
      * irq_pin -> Interrupt pin on the RPI, On the Adafruit RFM9x is this pin labeled dio0
      * RST_pin -> Reset pin on the RPI
     */
-    Labp_RFM95(int cs_pin = 6, int irq_pin = 7, int RST_pin = 0);
+    Labp_RFM95(int cs_pin = 6, int irq_pin = 7, int RST_pin = 0, std::string output_file_name="output_File.txt");
 
     /**
      * Destructor

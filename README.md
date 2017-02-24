@@ -27,7 +27,7 @@ The code requires the following software libraries.
 2. Wire up the Raspberry Pi with the second RFM95 LoRa Modul (see section Hardware Wiring)
 3. On the command line in our repository folder  ``$ cd HopeRF_LoRa_Receiver``
 4. Compile the code via the Makefile ``$ make``
-5. Run the LoRa Radio Receiver ``$ sudo ./main -f 868100000 -sf 7 -cr 5 -bw 125`` 
+5. Run the LoRa Radio Receiver ``$ sudo ./main -f 868100000 -sf 7 -cr 5 -bw 125 -o received_data.txt`` 
 
 Please note the adjustable arguments 
 ```
@@ -47,6 +47,11 @@ Please note the adjustable arguments
   -bw 125
   ``` 
 specifizes the bandwidth 125 kHz
+ 
+   ```
+  -o 125
+  ``` 
+specifizes the output file. Received payload will be written to the end of the file.
 
 All parameters can be adjusted. The given values are only the default values.
 
