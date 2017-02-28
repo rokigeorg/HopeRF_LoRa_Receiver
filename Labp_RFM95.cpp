@@ -704,7 +704,7 @@ void Labp_RFM95::writeCharBufToFile(const char *arr, int bufLen) {
         _loraFile << std::endl;
 
         ///write the RSSI value of the received Package
-        _loraFile << "RSSI: " << std::to_string(_lastRssi) << std::endl;
+        _loraFile << "RSSI : " << std::to_string(_lastRssi) << std::endl;
     } else{
         std::cout <<"File is not open!!" << std::endl;
     }
