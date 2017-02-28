@@ -11,9 +11,9 @@ debug:
 
 comprun:
 	rm main && $(CC) $(CFLAGS) $(LIBS) $(OBJS) -o main
-	sudo ./main -f 868100000 -sf 12 -cr 5 -bw 500
+	sudo ./main -f 868100000 -sf 12 -cr 5 -bw 500 -o received_data.txt
 run:
-	sudo ./main -f 868100000 -sf 12 -cr 5 -bw 500
+	sudo ./main -f 868100000 -sf 12 -cr 5 -bw 500 -o received_data.txt
 
 clean:
 	rm main

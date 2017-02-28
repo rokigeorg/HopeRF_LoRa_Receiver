@@ -689,6 +689,7 @@ uint8_t *Labp_RFM95::decrypData(uint8_t *cipher) {
 
 void Labp_RFM95::writeCharBufToFile(const char *arr, int bufLen) {
 
+
     if(_loraFile.is_open()){
 
         /// errror Handling
@@ -703,7 +704,7 @@ void Labp_RFM95::writeCharBufToFile(const char *arr, int bufLen) {
         _loraFile << std::endl;
 
         ///write the RSSI value of the received Package
-        _loraFile << "RSSI: " << _lastRssi << std::endl;
+        _loraFile << "RSSI: " << std::to_string(_lastRssi) << std::endl;
     } else{
         std::cout <<"File is not open!!" << std::endl;
     }
